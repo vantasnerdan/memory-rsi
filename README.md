@@ -108,6 +108,7 @@ Set overrides in the profile's `cordis.patch.yml` (or `$DSH_HOME/cordis.patch.ym
     memoryBin: memory      # console script to invoke
     pythonBin: python3     # used for the `python -m agent_memory` fallback
     base: ""               # default --base dir; empty = CLI auto-detect (config/env/cwd)
+    agentId: ""            # AGENT_ID for writes and "own" scope; empty = host env
     timeoutMs: 60000       # cooperative per-call timeout
 ```
 
