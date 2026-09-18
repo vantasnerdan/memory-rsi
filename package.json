@@ -28,15 +28,10 @@
   "scripts": {
     "test": "node --test tests/plugin.test.js"
   },
-  "peerDependencies": {
-    "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-tools": "^0.1.5-rc.2"
-  },
   "dependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-tools": "^0.1.5-rc.2",
     "@deepseek-ai/schemastery": "^3.18.2"
   },
-  "devDependencies": {
-    "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-tools": "^0.1.5-rc.2"
-  }
+  "devDependencies": {}
 }

@@ -36,7 +36,24 @@ discover-narrow-write workflow (`ls → toc → section/search → new/update`).
 
 ## Install
 
-### One command
+### One command, no clone
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh
+```
+
+Pass a profile name after `--` (defaults to `web`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh -s -- my-profile
+```
+
+The script downloads the repository to `$DSH_HOME/plugins/memory-contract-rsi`,
+installs its runtime dependencies, installs the vendored CLI, wires the plugin
+into the profile, and registers the bundle. Re-running it updates to the
+latest `main`.
+
+### From a clone
 
 ```sh
 git clone https://github.com/vantasnerdan/memory-contract-rsi.git
