@@ -42,35 +42,47 @@ discover-narrow-write workflow (`ls → toc → section/search → new/update`).
 curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh
 ```
 
-Pass a profile name after `--` (defaults to `web`):
+Fully scriptable with flags (a bare profile name also works for backwards
+compatibility):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh -s -- my-profile
+curl -fsSL .../scripts/install.sh | sh -s -- \
+    --profile my-profile \
+    --agent-id dan \
+    --base ~/agent-memory/memory
 ```
 
-The script downloads the repository to `$DSH_HOME/plugins/memory-rsi`,
-installs its runtime dependencies, installs the vendored CLI, wires the plugin
-into the profile, and registers the bundle. Re-running it updates to the
-latest `main`.
+| Flag | Meaning | Default |
+|---|---|---|
+| `--profile NAME` | dsh profile to install into | `web` |
+| `--agent-id ID` | memory author identity (`agentId` config) | `git config user.name`, else `$USER` |
+| `--base DIR` | memory repo directory | `$AGENT_MEMORY_PATH` or `~/agent-memory/memory` |
+| `-y, --yes` | never prompt; accept defaults | — |
+
+Run from a terminal, the installer prompts for anything you did not pass;
+piped or fully flagged, it is non-interactive — safe for agents to drive.
+
+The installer is idempotent and owns the whole setup:
+
+1. Installs the vendored CLI — **pipx** if available, else `pip install --user`,
+   else a dedicated venv with a `memory` shim on `~/.local/bin`.
+2. Initializes the memory repo (git init, initial commit with a repo-local
+   identity, BM25 search cache) when it is missing or has no commits.
+3. Adds the plugin to the dsh profile (`dsh plugin --profile <p> add`).
+4. Registers `memory-rsi` in the profile's bundle list (`package.json` /
+   `dsh.profile`).
+5. Writes a managed config block (`agentId`, `base`, timeouts) into the
+   profile's `cordis.patch.yml`, refreshing it on re-runs and leaving
+   hand-edited rows alone.
 
 ### From a clone
 
 ```sh
 git clone https://github.com/vantasnerdan/memory-rsi.git
 cd memory-rsi
-./scripts/install.sh            # installs into the "web" profile
-./scripts/install.sh my-profile # or any other profile name
+./scripts/install.sh              # interactive prompts for anything unset
+./scripts/install.sh --agent-id dan --base ~/agent-memory/memory
 ```
-
-The script is idempotent and does three things:
-
-1. Installs the vendored CLI — **pipx** if available, else `pip install --user`,
-   else a dedicated venv with a `memory` shim on `~/.local/bin`.
-2. Adds this repository to the dsh profile via `dsh plugin --profile <p> add`.
-3. Registers `memory-rsi` in the profile's `dsh.profile` bundle list.
-
-Then restart the profile (`dsh --profile web`) and verify with
-`dsh --profile web --dump-config | grep memory-rsi`.
 
 ### Manual install
 
