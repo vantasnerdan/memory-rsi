@@ -34,19 +34,36 @@ discover-narrow-write workflow (`ls → toc → section/search → new/update`).
 - A DeepSeek Harness installation (the `dsh` CLI)
 - Python 3.10+ on the host, with the vendored CLI installed (see below)
 
-## Install the CLI
+## Install
 
-The plugin shells out to `memory`; install the vendored copy once:
+### One command
+
+```sh
+git clone https://github.com/vantasnerdan/memory-contract-rsi.git
+cd memory-contract-rsi
+./scripts/install.sh            # installs into the "web" profile
+./scripts/install.sh my-profile # or any other profile name
+```
+
+The script is idempotent and does three things:
+
+1. Installs the vendored CLI — **pipx** if available, else `pip install --user`,
+   else a dedicated venv with a `memory` shim on `~/.local/bin`.
+2. Adds this repository to the dsh profile via `dsh plugin --profile <p> add`.
+3. Registers `memory-contract-rsi` in the profile's `dsh.profile` bundle list.
+
+Then restart the profile (`dsh --profile web`) and verify with
+`dsh --profile web --dump-config | grep memory-contract-rsi`.
+
+### Manual install
+
+If you prefer to do each step yourself:
 
 ```sh
 pipx install ./cli          # preferred: puts `memory` on PATH
 # or
 pip install ./cli           # the plugin then falls back to `python3 -m agent_memory`
-```
 
-## Install the plugin into a DSH profile
-
-```sh
 dsh plugin --profile web add /path/to/memory-contract-rsi   # or the published package name
 ```
 
