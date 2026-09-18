@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
-# One-command installer for memory-contract-rsi.
+# One-command installer for memory-rsi.
 #
-#   curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh
-#   curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh -s -- my-profile
+#   curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh -s -- my-profile
 #
 # Or from a checkout:
 #
@@ -18,8 +18,8 @@
 set -eu
 
 profile="${1:-web}"
-bundle="memory-contract-rsi"
-repo_slug="${MCR_REPO_SLUG:-vantasnerdan/memory-contract-rsi}"
+bundle="memory-rsi"
+repo_slug="${MRSI_REPO_SLUG:-vantasnerdan/memory-rsi}"
 dsh_home="${DSH_HOME:-$HOME/.dsh}"
 profile_dir="$dsh_home/profiles/$profile"
 
@@ -108,4 +108,4 @@ say "Done. Restart the profile to load the memory tools:"
 echo "    dsh --profile $profile"
 echo
 echo "Verify:"
-echo "    dsh --profile $profile --dump-config | grep memory-contract-rsi"
+echo "    dsh --profile $profile --dump-config | grep memory-rsi"
