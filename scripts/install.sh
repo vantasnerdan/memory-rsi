@@ -78,11 +78,28 @@ else
     esac
 fi
 
-# ── 2. Add the plugin to the profile ────────────────────────────────────────
+# ── 2. Initialize the memory repo if it does not exist yet ──────────────────
+# The CLI's default base is ~/agent-memory/memory. Writes need a git repo
+# with at least one commit, and search needs the BM25 cache built.
+base_dir="${AGENT_MEMORY_PATH:-$HOME/agent-memory/memory}"
+if [ ! -d "$base_dir" ]; then
+    say "Initializing memory repo at $base_dir"
+    mkdir -p "$base_dir"
+    git -C "$base_dir" init -q -b main 2>/dev/null || git -C "$base_dir" init -q
+    git -C "$base_dir" commit -q --allow-empty -m "initialize memory repo" ||
+        say "WARNING: could not create the initial commit (set git user.name/user.email); writes will fail until you do"
+    memory cache build >/dev/null 2>&1 || true
+elif ! git -C "$base_dir" rev-parse HEAD >/dev/null 2>&1; then
+    say "Memory repo has no commits; creating the initial commit"
+    git -C "$base_dir" commit -q --allow-empty -m "initialize memory repo" ||
+        say "WARNING: could not create the initial commit (set git user.name/user.email); writes will fail until you do"
+fi
+
+# ── 3. Add the plugin to the profile ────────────────────────────────────────
 say "Adding $bundle to dsh profile '$profile'"
 dsh plugin --profile "$profile" add "$repo_root"
 
-# ── 3. Register the bundle in dsh.profile ───────────────────────────────────
+# ── 4. Register the bundle in dsh.profile ───────────────────────────────────
 manifest="$profile_dir/dsh.profile"
 [ -f "$manifest" ] || die "profile manifest not found: $manifest (boot the profile once to initialize it)"
 

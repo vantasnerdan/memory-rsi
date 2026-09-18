@@ -16,5 +16,8 @@
         # Default --base directory for the memory repo; empty lets the CLI
         # auto-detect from its config, AGENT_MEMORY_PATH, or the cwd.
         base: ""
+        # Agent identity for writes and "own" scope. Exported to the CLI as
+        # AGENT_ID and used as the default --author. Empty = host env.
+        agentId: ""
         # Cooperative per-call timeout budget (ms).
         timeoutMs: 60000
