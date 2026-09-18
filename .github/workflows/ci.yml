@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save @deepseek-ai/schemastery @deepseek-ai/dsh-tools @deepseek-ai/cordis
+      - run: npm test
+
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install vendored CLI
+        run: pip install -e ./cli
+      - name: Run CLI test suite
+        run: |
+          pip install pytest
+          pytest cli/tests
+      - name: Smoke test console script and module fallback
+        run: |
+          memory --help >/dev/null
+          python3 -m agent_memory --help >/dev/null

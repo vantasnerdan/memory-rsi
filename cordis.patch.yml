@@ -1,0 +1,20 @@
+# The memory-contract-rsi bundle patch: inserts the agent-memory tool plugin
+# as one host row over the base layer. Rows in later patch layers (the
+# profile's cordis.patch.yml, $DSH_HOME/cordis.patch.yml, --patch) override
+# this row by id and must restate every key they own, since a patch replaces
+# the targeted row's whole `config`.
+
+- insert:
+    - id: memory-contract-rsi
+      name: memory-contract-rsi
+      config:
+        # Console script to invoke; when missing from PATH the plugin falls
+        # back to `pythonBin -m agent_memory` (the vendored CLI ships a
+        # __main__ shim for exactly that).
+        memoryBin: memory
+        pythonBin: python3
+        # Default --base directory for the memory repo; empty lets the CLI
+        # auto-detect from its config, AGENT_MEMORY_PATH, or the cwd.
+        base: ""
+        # Cooperative per-call timeout budget (ms).
+        timeoutMs: 60000
