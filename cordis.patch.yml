@@ -1,12 +1,12 @@
-# The memory-contract-rsi bundle patch: inserts the agent-memory tool plugin
+# The memory-rsi bundle patch: inserts the agent-memory tool plugin
 # as one host row over the base layer. Rows in later patch layers (the
 # profile's cordis.patch.yml, $DSH_HOME/cordis.patch.yml, --patch) override
 # this row by id and must restate every key they own, since a patch replaces
 # the targeted row's whole `config`.
 
 - insert:
-    - id: memory-contract-rsi
-      name: memory-contract-rsi
+    - id: memory-rsi
+      name: memory-rsi
       config:
         # Console script to invoke; when missing from PATH the plugin falls
         # back to `pythonBin -m agent_memory` (the vendored CLI ships a

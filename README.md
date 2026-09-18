@@ -1,4 +1,4 @@
-# memory-contract-rsi
+# memory-rsi
 
 A [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (DSH) plugin that turns the
 [agent-memory CLI](https://github.com/axis-marbell/agent-memory-cli) into first-class model tools.
@@ -39,16 +39,16 @@ discover-narrow-write workflow (`ls → toc → section/search → new/update`).
 ### One command, no clone
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh
 ```
 
 Pass a profile name after `--` (defaults to `web`):
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-contract-rsi/main/scripts/install.sh | sh -s -- my-profile
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh -s -- my-profile
 ```
 
-The script downloads the repository to `$DSH_HOME/plugins/memory-contract-rsi`,
+The script downloads the repository to `$DSH_HOME/plugins/memory-rsi`,
 installs its runtime dependencies, installs the vendored CLI, wires the plugin
 into the profile, and registers the bundle. Re-running it updates to the
 latest `main`.
@@ -56,8 +56,8 @@ latest `main`.
 ### From a clone
 
 ```sh
-git clone https://github.com/vantasnerdan/memory-contract-rsi.git
-cd memory-contract-rsi
+git clone https://github.com/vantasnerdan/memory-rsi.git
+cd memory-rsi
 ./scripts/install.sh            # installs into the "web" profile
 ./scripts/install.sh my-profile # or any other profile name
 ```
@@ -67,10 +67,10 @@ The script is idempotent and does three things:
 1. Installs the vendored CLI — **pipx** if available, else `pip install --user`,
    else a dedicated venv with a `memory` shim on `~/.local/bin`.
 2. Adds this repository to the dsh profile via `dsh plugin --profile <p> add`.
-3. Registers `memory-contract-rsi` in the profile's `dsh.profile` bundle list.
+3. Registers `memory-rsi` in the profile's `dsh.profile` bundle list.
 
 Then restart the profile (`dsh --profile web`) and verify with
-`dsh --profile web --dump-config | grep memory-contract-rsi`.
+`dsh --profile web --dump-config | grep memory-rsi`.
 
 ### Manual install
 
@@ -81,7 +81,7 @@ pipx install ./cli          # preferred: puts `memory` on PATH
 # or
 pip install ./cli           # the plugin then falls back to `python3 -m agent_memory`
 
-dsh plugin --profile web add /path/to/memory-contract-rsi   # or the published package name
+dsh plugin --profile web add /path/to/memory-rsi   # or the published package name
 ```
 
 Then add the package to the profile's bundle list in
@@ -93,17 +93,17 @@ dsh:
     bundles:
       - "@deepseek-ai/dsh-base"
       - "@deepseek-ai/dsh-web-app"
-      - "memory-contract-rsi"
+      - "memory-rsi"
 ```
 
-Restart the profile. Verify with `dsh --profile web --dump-config | grep memory-contract-rsi`.
+Restart the profile. Verify with `dsh --profile web --dump-config | grep memory-rsi`.
 
 ## Configuration
 
 Set overrides in the profile's `cordis.patch.yml` (or `$DSH_HOME/cordis.patch.yml`):
 
 ```yaml
-- id: memory-contract-rsi
+- id: memory-rsi
   config:
     memoryBin: memory      # console script to invoke
     pythonBin: python3     # used for the `python -m agent_memory` fallback

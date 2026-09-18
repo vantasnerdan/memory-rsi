@@ -1,11 +1,11 @@
 {
-  "name": "memory-contract-rsi",
+  "name": "memory-rsi",
   "description": "DeepSeek Harness plugin exposing the agent-memory CLI (progressive disclosure, BM25 search, Git-backed markdown memory) as model tools",
   "version": "0.1.0",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vantasnerdan/memory-contract-rsi.git"
+    "url": "git+https://github.com/vantasnerdan/memory-rsi.git"
   },
   "type": "module",
   "main": "lib/index.js",
