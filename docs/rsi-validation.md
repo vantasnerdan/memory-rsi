@@ -1,4 +1,4 @@
-# RSI 0.4.0 validation — release validation in progress
+# RSI 0.4.0 validation and delivery
 
 ## Governing contracts
 
@@ -164,8 +164,21 @@ valid dispatches. Each was corrected and the frozen suites rerun.
 
 ## Delivery
 
-Source and live validation are complete. Final Git publication/CI and contract
-completion evidence will be recorded after those operations actually succeed.
+Implementation commit **`c8ea220b7a1ac991a323ed182779491fe88b24a1`** was published to
+`origin/main`; `git ls-remote` matched that exact SHA. All three jobs passed in
+[GitHub CI run 35459877380](https://github.com/vantasnerdan/memory-rsi/actions/runs/35459877380):
+
+- `cli`: full suite, console/module fallback and wheel packaging.
+- `plugin`: clean dependency install, Node suite, diff checks and package dry run.
+- `clean-bootstrap`: packed clean-home bootstrap, migration, idempotent rerun and
+  graph-only smoke, with uploaded CI evidence.
+
+The follow-up documentation-only commit records this observed delivery. Runtime
+modules remain the tested implementation; the final archive includes this report.
+Installed Host0.4.0/CLI0.5.0 and canonical-policy retention are verified separately
+from CI. Completion reports/reviews live in the two governing memory contracts.
+Memory writes reported local-only persistence; these receipts are durable local
+records, not claims of public independent attestations.
 
 ## Honest limits
 
