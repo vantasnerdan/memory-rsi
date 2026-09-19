@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 import click
@@ -95,7 +96,7 @@ def _invalid_constant(value):
 def plan_cmd(request, base, no_git, allow_non_main_branch):
     """Discover/review templates and manage shared evidence-backed plans."""
     try:
-        raw = click.get_text_stream("stdin").read() if request == "-" else request
+        raw = sys.stdin.read() if request == "-" else request
         payload = json.loads(raw, object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
         result = execute_request(payload, resolve_base_path(base), actor=get_agent_id() or "unknown",
                                  no_git=no_git, allow_non_main_branch=allow_non_main_branch)

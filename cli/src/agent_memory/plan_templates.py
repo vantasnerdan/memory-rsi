@@ -133,5 +133,5 @@ def save_template(store, request, actor):
     check_revision(request["revision"], previous["revision"] if previous else None)
     contract = {"kind": "template", "schema": 1, "template_id": template_id, "template": deepcopy(template)}
     result = store.save("templates", template_id, contract, render_template(template), actor=actor,
-                        expected=previous["revision"] if exists else None)
+                        expected=previous["revision"] if exists and previous is not None else None)
     return {**result, "template_id": template_id, "template": deepcopy(template)}

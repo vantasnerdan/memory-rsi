@@ -277,8 +277,8 @@ class PolicyStore:
             _revision(request["expected_target_revision"], "expected_target_revision", missing=True)
         if "actor" in request or "reason" in request:
             _identity(request)
+        actor, reason = _identity(request) if apply else ("", "")
         if apply:
-            actor, reason = _identity(request)
             self._check_expected(request, current)
             _revision(request.get("expected_target_revision"), "expected_target_revision", missing=True)
         # The lock is separate from the replaceable target inode, and works even
