@@ -387,11 +387,12 @@ class TestCommitAndPushIntegration:
         file_path = tmp_path / "entry.md"
         sha_value = "a" * 40
 
-        # git_ops._run_git calls: add, commit, rev-parse
+        # git_ops._run_git calls: add, commit, rev-parse, remote
         mock_git_ops_run.side_effect = [
             _cp(),  # git add
             _cp(),  # git commit
             _cp(stdout=sha_value + "\n"),  # git rev-parse HEAD
+            _cp(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = True
 

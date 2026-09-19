@@ -1,7 +1,7 @@
 {
   "name": "memory-rsi",
   "description": "DeepSeek Harness plugin exposing the agent-memory CLI (progressive disclosure, BM25 search, Git-backed markdown memory) as model tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -16,6 +16,7 @@
   "files": [
     "lib",
     "cli",
+    "docs",
     "cordis.patch.yml",
     "README.md",
     "LICENSE"
@@ -26,7 +27,7 @@
     }
   },
   "scripts": {
-    "test": "node --test tests/plugin.test.js"
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "@deepseek-ai/cordis": "^4.0.2",

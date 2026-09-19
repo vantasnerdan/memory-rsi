@@ -1,7 +1,13 @@
 # memory-rsi
 
+**Rewards > gates.** Help agents choose excellent behavior before and during work:
+shared memory contracts describe useful outcomes, achievements, and credible evidence.
+Validation supports honest achievement; permissions and safety remain boundaries.
+This is reward-shaped guidance, not a change to a model's training reward.
+
 A [DeepSeek Harness](https://www.npmjs.com/package/@deepseek-ai/dsh) (DSH) plugin that turns the
-[agent-memory CLI](https://github.com/axis-marbell/agent-memory-cli) into first-class model tools.
+[agent-memory CLI](https://github.com/axis-marbell/agent-memory-cli) into first-class model tools,
+including template-based plans and editable, persistent agent instructions.
 
 agent-memory is progressive-disclosure memory management for autonomous agents: Git-backed markdown
 with YAML frontmatter, where *structure IS the memory* — discovery over retrieval. This repository
@@ -12,6 +18,8 @@ your agent gets persistent, searchable, Git-synced memory out of the box.
 
 | Tool | Wraps | Purpose |
 |---|---|---|
+| `memory_plan` | `memory plan` | Review/edit templates; create shared plans; record evidence, reviews, exceptions, and achievement progress |
+| `memory_policy` | `memory policy` | Read/update persistent prompt policy, inspect history/rollback, preview/sync managed instruction sections |
 | `memory_ls` | `memory ls` | Progressive-disclosure directory listing (directories → entry summaries) |
 | `memory_toc` | `memory toc` | One entry's frontmatter summary + section titles |
 | `memory_section` | `memory section` | Read a single section by (partial) title — the narrowest read |
@@ -26,8 +34,39 @@ your agent gets persistent, searchable, Git-synced memory out of the box.
 | `memory_cache` | `memory cache build\|status\|clear` | Manage the SQLite BM25 index cache |
 | `memory_log` | `memory log` | CLI usage log (recent commands, durations, errors) |
 
-The plugin also injects a system-prompt section teaching the model the
-discover-narrow-write workflow (`ls → toc → section/search → new/update`).
+The plugin injects reward-first contract guidance and re-reads the editable policy
+at **each DSH prompt assembly**. Agent and human edits therefore affect subsequent
+assemblies after the updated plugin is loaded; they do not rewrite prior messages.
+It supplements the existing prompt, not the deployment's immutable instructions.
+
+## Shared plans and editable instructions
+
+```js
+memory_plan({action: "templates"})
+memory_plan({action: "review", request: '{"template_id":"coding"}'})
+// Review returns the full template, its revision, and runnable create/update examples.
+// Fill the create example for the actual task; pass action separately in the tool.
+memory_policy({action: "read"})
+```
+
+Plans pin complete template snapshots. Subagents receive the same plan ID, latest
+revision, and assigned work-item IDs; scoped revision-checked updates prevent lost
+work. Achievements reward outcomes with evidence, not tool counts. Built-in coding
+contracts emphasize AST/LSP capability, separation of concerns, single responsibility,
+focused files/functions, validation, and authorized GitOps.
+
+Humans can use the same JSON APIs from a terminal:
+
+```sh
+memory plan --request '{"action":"templates"}' --base /path/to/memory
+memory policy --request '{"action":"read"}' --base /path/to/memory
+# Multi-line requests: memory plan --request - --base /path/to/memory < request.json
+```
+
+See **[Contracts and policy guide](docs/contracts.md)** for creation, achievement
+review, template improvements, policy history/rollback, and managed `AGENTS.md` sync.
+Policy is operator-editable; audit labels are not authenticated human approval.
+Shared requirements should not be weakened without explicit human review.
 
 ## Requirements
 
@@ -64,8 +103,9 @@ piped or fully flagged, it is non-interactive — safe for agents to drive.
 
 The installer is idempotent and owns the whole setup:
 
-1. Installs the vendored CLI — **pipx** if available, else `pip install --user`,
-   else a dedicated venv with a `memory` shim on `~/.local/bin`.
+1. Installs **or upgrades** the vendored CLI — **pipx** if available, else pip
+   (active environment or `--user`), with a dedicated venv fallback. Existing
+   `memory` commands no longer cause the upgrade to be skipped.
 2. Initializes the memory repo (git init, initial commit with a repo-local
    identity, BM25 search cache) when it is missing or has no commits.
 3. Adds the plugin to the dsh profile (`dsh plugin --profile <p> add`).
@@ -119,8 +159,9 @@ Set overrides in the profile's `cordis.patch.yml` (or `$DSH_HOME/cordis.patch.ym
   config:
     memoryBin: memory      # console script to invoke
     pythonBin: python3     # used for the `python -m agent_memory` fallback
-    base: ""               # default --base dir; empty = CLI auto-detect (config/env/cwd)
-    agentId: ""            # AGENT_ID for writes and "own" scope; empty = host env
+    base: "/path/to/memory" # tools and prompt share this root; empty resolves CLI defaults once at load
+    agentId: ""            # ordinary memory author; plan tools record the calling session ID
+    instructionFiles: []   # operator allowlist, e.g. ["/project/AGENTS.md"]; sync previews before applying
     timeoutMs: 60000       # cooperative per-call timeout
 ```
 
@@ -140,8 +181,10 @@ Claude-style lifecycle hooks.
 ## Development
 
 ```sh
-npm test            # plugin smoke tests
-pip install ./cli[dev] && pytest cli/tests   # vendored CLI test suite
+npm test                                     # DSH tools, live policy reads, installer regressions
+python3 -m pip install ./cli pytest           # runtime + test dependencies
+PYTHONPATH=cli/src python3 -m pytest cli/tests # isolated CLI regression suite
+python3 scripts/check-language-servers.py     # optional: AST + actual Python/JS LSP symbol queries
 ```
 
 ## License

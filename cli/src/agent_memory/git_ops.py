@@ -497,8 +497,9 @@ def commit_and_push(
         0. assert_on_default_branch (issue #82 guard)
         1. git add {file_path}
         2. git commit with formatted message
-        3. git pull --rebase (with cache conflict auto-resolution)
-        4. git push with retry on rejection (exponential backoff)
+        3. Return the local commit SHA if no Git remotes are configured
+        4. git pull --rebase (with cache conflict auto-resolution)
+        5. git push with retry on rejection (exponential backoff)
 
     Handles concurrent push scenarios where multiple agents write
     to the same repo. The .agent-memory-cache binary file is
@@ -533,6 +534,12 @@ def commit_and_push(
 
     git_add(file_path, repo_path)
     sha = git_commit(message, repo_path)
+
+    # A local-only memory repository has nothing to pull or push. The commit
+    # succeeded; do not misreport its missing remote as an unresolvable conflict.
+    remotes = _run_git(["remote"], repo_path, "git remote failed")
+    if not remotes.stdout.strip():
+        return sha
 
     if not _pull_rebase_with_cache_resolution(repo_path):
         raise RuntimeError(

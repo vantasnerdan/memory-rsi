@@ -25,6 +25,8 @@ test("every memory tool is registered with a valid definition", () => {
 		"memory_clone",
 		"memory_cache",
 		"memory_log",
+		"memory_plan",
+		"memory_policy",
 	];
 	const registered = [];
 	const promptSections = [];

@@ -121,24 +121,32 @@ else
 fi
 
 # ── 2. Install the vendored CLI ─────────────────────────────────────────────
-if command -v memory >/dev/null 2>&1; then
-    say "memory CLI already installed: $(command -v memory)"
-elif command -v pipx >/dev/null 2>&1; then
-    say "Installing the agent-memory CLI with pipx"
-    pipx install "$repo_root/cli"
-elif python3 -m pip --version >/dev/null 2>&1; then
-    say "pipx not found; installing with pip --user (pipx is recommended)"
-    python3 -m pip install --user "$repo_root/cli"
-else
-    say "Neither pipx nor pip found; installing into $HOME/.local/memory-venv"
+install_cli_venv() {
+    say "Installing/upgrading into $HOME/.local/memory-venv"
     python3 -m venv "$HOME/.local/memory-venv"
-    "$HOME/.local/memory-venv/bin/pip" install "$repo_root/cli"
+    "$HOME/.local/memory-venv/bin/pip" install --upgrade "$repo_root/cli"
     mkdir -p "$HOME/.local/bin"
     ln -sf "$HOME/.local/memory-venv/bin/memory" "$HOME/.local/bin/memory"
     case ":$PATH:" in
         *":$HOME/.local/bin:"*) ;;
         *) warn "add $HOME/.local/bin to your PATH so 'memory' resolves" ;;
     esac
+}
+if command -v pipx >/dev/null 2>&1; then
+    say "Installing/upgrading the vendored agent-memory CLI with pipx"
+    pipx install --force "$repo_root/cli"
+elif python3 -m pip --version >/dev/null 2>&1; then
+    # --user is invalid inside ordinary virtual environments; externally
+    # managed Python installations may reject it too. Retain a venv fallback.
+    if python3 -c 'import sys; sys.exit(0 if sys.prefix != sys.base_prefix else 1)'; then
+        say "Installing/upgrading the CLI in the active Python environment"
+        python3 -m pip install --upgrade "$repo_root/cli" || install_cli_venv
+    else
+        say "Installing/upgrading the CLI with pip --user (pipx is recommended)"
+        python3 -m pip install --user --upgrade "$repo_root/cli" || install_cli_venv
+    fi
+else
+    install_cli_venv
 fi
 command -v memory >/dev/null 2>&1 || warn "'memory' is not on PATH yet; open a new shell or add ~/.local/bin"
 
@@ -160,7 +168,7 @@ if ! git -C "$base" rev-parse HEAD >/dev/null 2>&1; then
 else
     say "Memory repo ready: $base ($(git -C "$base" rev-parse --short HEAD))"
 fi
-memory cache build >/dev/null 2>&1 && say "BM25 search cache built" || warn "could not build the search cache (run 'memory cache build' later)"
+memory cache build --base "$base" >/dev/null 2>&1 && say "BM25 search cache built" || warn "could not build the search cache (run 'memory cache build' later)"
 
 # ── 4. Add the plugin to the profile ────────────────────────────────────────
 say "Adding $bundle to dsh profile '$profile'"
@@ -205,20 +213,24 @@ append_block=0
 if grep -qF "$marker_begin" "$patch_file"; then
     say "Refreshing managed config block in $patch_file"
     python3 - "$patch_file" "$marker_begin" "$marker_end" "$agent_id" "$base" <<'PY'
-import re, sys
+import json, re, sys
 path, mb, me, agent_id, base = sys.argv[1:6]
-block = f"""{mb}
-- id: memory-rsi
-  config:
-    memoryBin: memory
-    pythonBin: python3
-    base: "{base}"
-    agentId: "{agent_id}"
-    timeoutMs: 60000
-{me}"""
 with open(path) as f:
     text = f.read()
-text = re.sub(re.escape(mb) + r".*?" + re.escape(me), block.strip(), text, flags=re.S)
+pattern = re.escape(mb) + r".*?" + re.escape(me)
+def refresh(match):
+    block = match.group(0)
+    # Preserve operator additions such as instructionFiles. Only these
+    # installer-owned identity/location fields change on subsequent runs.
+    for key, value in (("base", base), ("agentId", agent_id)):
+        line = f"    {key}: {json.dumps(value)}"
+        field = rf"^    {key}:.*$"
+        if re.search(field, block, flags=re.M):
+            block = re.sub(field, lambda _: line, block, flags=re.M)
+        else:
+            block = block.replace(me, line + "\n" + me)
+    return block
+text = re.sub(pattern, refresh, text, flags=re.S)
 with open(path, "w") as f:
     f.write(text)
 PY
@@ -239,18 +251,15 @@ with open(path) as f:
 with open(path, "w") as f:
     f.write("\n".join(lines).rstrip("\n") + "\n")
 PY
-    {
-        echo ""
-        echo "$marker_begin"
-        echo "- id: $bundle"
-        echo "  config:"
-        echo "    memoryBin: memory"
-        echo "    pythonBin: python3"
-        echo "    base: \"$base\""
-        echo "    agentId: \"$agent_id\""
-        echo "    timeoutMs: 60000"
-        echo "$marker_end"
-    } >> "$patch_file"
+    python3 - "$patch_file" "$marker_begin" "$marker_end" "$agent_id" "$base" <<'PY'
+import json, sys
+path, mb, me, agent_id, base = sys.argv[1:6]
+with open(path, "a") as f:
+    f.write(f"\n{mb}\n- id: memory-rsi\n  config:\n"
+            f"    memoryBin: memory\n    pythonBin: python3\n"
+            f"    base: {json.dumps(base)}\n    agentId: {json.dumps(agent_id)}\n"
+            f"    timeoutMs: 60000\n{me}\n")
+PY
     say "Wrote config block to $patch_file"
 fi
 

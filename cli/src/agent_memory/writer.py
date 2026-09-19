@@ -203,6 +203,12 @@ def update_entry(
 
     text = file_path.read_text(encoding="utf-8")
     fm, existing_body = parse_frontmatter(text)
+    contract = fm.raw.get("contract")
+    if isinstance(contract, dict) and contract.get("kind") in {"plan", "template"}:
+        raise ValueError(
+            "Use memory plan update/save_template for contract files; "
+            "generic updates would discard pinned requirements and revision metadata."
+        )
 
     # Update tags
     if tags is not None:

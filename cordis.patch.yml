@@ -19,5 +19,7 @@
         # Agent identity for writes and "own" scope. Exported to the CLI as
         # AGENT_ID and used as the default --author. Empty = host env.
         agentId: ""
+        # Operator-owned allowlist for explicit managed policy sync. No default writes.
+        instructionFiles: []
         # Cooperative per-call timeout budget (ms).
         timeoutMs: 60000

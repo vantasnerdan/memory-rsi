@@ -178,12 +178,13 @@ class TestCommitAndPush:
             _make_completed_process(),  # git add
             _make_completed_process(),  # git commit
             _make_completed_process(stdout=sha_value + "\n"),  # git rev-parse HEAD
+            _make_completed_process(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = True
 
         sha = commit_and_push(file_path, "agent-1", "add", "my-entry", tmp_path)
         assert sha == sha_value
-        assert mock_run.call_count == 3
+        assert mock_run.call_count == 4
         mock_pull_rebase.assert_called_once_with(tmp_path)
         mock_push_retry.assert_called_once_with(tmp_path)
         mock_assert_branch.assert_called_once_with(
@@ -209,6 +210,7 @@ class TestCommitAndPush:
             _make_completed_process(),  # add
             _make_completed_process(),  # commit
             _make_completed_process(stdout=sha_value + "\n"),  # rev-parse
+            _make_completed_process(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = True
 
@@ -238,6 +240,7 @@ class TestCommitAndPush:
             _make_completed_process(),  # add
             _make_completed_process(),  # commit
             _make_completed_process(stdout=sha_value + "\n"),  # rev-parse
+            _make_completed_process(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = True
 
@@ -265,6 +268,7 @@ class TestCommitAndPush:
             _make_completed_process(),  # add
             _make_completed_process(),  # commit
             _make_completed_process(stdout=sha_value + "\n"),  # rev-parse
+            _make_completed_process(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = True
         mock_push_retry.side_effect = RuntimeError("push failed after 3 attempts")
@@ -290,11 +294,29 @@ class TestCommitAndPush:
             _make_completed_process(),  # add
             _make_completed_process(),  # commit
             _make_completed_process(stdout=sha_value + "\n"),  # rev-parse
+            _make_completed_process(stdout="origin\n"),  # git remote
         ]
         mock_pull_rebase.return_value = False
 
         with pytest.raises(RuntimeError, match="pull --rebase failed"):
             commit_and_push(file_path, "agent-1", "add", "entry", tmp_path)
+
+
+class TestLocalOnlyCommitAndPush:
+    """A real local repository must commit successfully without remote work."""
+
+    def test_commit_without_remote_returns_sha_and_skips_network(self, tmp_path):
+        repo = _init_real_repo(tmp_path / "local", set_origin_head=False)
+        entry = repo / "entry.md"
+        entry.write_text("# Local memory entry\n")
+        with patch("agent_memory.push_retry._pull_rebase_with_cache_resolution") as pull, patch("agent_memory.push_retry.push_with_retry") as push:
+            sha = commit_and_push(entry, "test-agent", "add", "entry", repo)
+        assert len(sha) == 40
+        assert _run_git(["rev-parse", "HEAD"], repo, "read HEAD").stdout.strip() == sha
+        assert _run_git(["show", "HEAD:entry.md"], repo, "read committed entry").stdout == entry.read_text()
+        assert _run_git(["status", "--porcelain"], repo, "read status").stdout == ""
+        pull.assert_not_called()
+        push.assert_not_called()
 
 
 class TestGitRepoRoot:

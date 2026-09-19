@@ -13,8 +13,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --no-save @deepseek-ai/schemastery @deepseek-ai/dsh-tools @deepseek-ai/cordis
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: npm ci
+      - run: python3 -m pip install ./cli
       - run: npm test
+      - run: sh -n scripts/install.sh && git diff --check
+      - run: npm pack --dry-run
 
   cli:
     runs-on: ubuntu-latest
@@ -35,3 +41,5 @@ jobs:
         run: |
           memory --help >/dev/null
           python3 -m agent_memory --help >/dev/null
+      - name: Verify wheel packaging
+        run: python3 -m pip wheel --no-deps --wheel-dir /tmp/wheels ./cli
