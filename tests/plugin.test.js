@@ -27,6 +27,8 @@ test("every memory tool is registered with a valid definition", () => {
 		"memory_log",
 		"memory_plan",
 		"memory_policy",
+		"memory_setup",
+		"gitnexus",
 	];
 	const registered = [];
 	const promptSections = [];

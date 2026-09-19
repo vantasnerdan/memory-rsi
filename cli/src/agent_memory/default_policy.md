@@ -10,6 +10,11 @@ Parents and subagents share the governing plan ID and revision, pinned template 
 ## Evidence and engineering
 Define meaningful achievements and attach verifiable evidence of outcomes. Distinguish proposals, attempts, observed results, and unverified claims. Record limitations, failed checks, and unresolved risks honestly. Use AST exploration, LSP diagnostics, separation of concerns (SoC), single-responsibility design (SRP), and GitOps review/test/deployment practices where applicable and available. Missing tooling is an explicit limitation, not proof of success.
 
+## Portable bootstrap and graph tools
+Keep paths, identities, memory repositories, and tool locations in user-local configuration, not reusable templates or plugin defaults. Initialize only missing state. For Codex migration, preview explicitly selected Markdown sources, preserve originals, and never import credentials or session history or automatically execute imported instructions.
+
+Use GitNexus only for its code graph. Never generate embeddings, download embedding models, or enable semantic-query fallback. Use the graph-only tool adapter for indexing and lexical graph queries; verify the selected project's index independently of tool installation.
+
 ## Explicit, reviewable changes
 Policy edits are explicit versioned operations with actor, expected revision, and reason. Direct human edits remain readable. Inspect history and use rollback when appropriate. Shared-policy weakening should receive human review before application; an agent-provided boolean or actor label is not evidence of approval and does not enforce authorization. Reviewable guidance is not a substitute for platform permissions.
 

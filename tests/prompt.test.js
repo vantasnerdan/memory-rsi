@@ -13,11 +13,12 @@ function fixture(t) {
 	return root;
 }
 function environment(t, root) {
-	for (const key of ["HOME", "AGENT_MEMORY_PATH", "PYTHONPATH"]) {
+	for (const key of ["HOME", "DSH_HOME", "AGENT_MEMORY_PATH", "PYTHONPATH"]) {
 		const value = process.env[key];
 		t.after(() => { if (value === undefined) delete process.env[key]; else process.env[key] = value; });
 	}
 	process.env.HOME = root;
+	process.env.DSH_HOME = join(root, ".dsh");
 	delete process.env.AGENT_MEMORY_PATH;
 	process.env.PYTHONPATH = resolve("cli/src");
 }
@@ -39,13 +40,13 @@ test("empty base uses authoritative CLI config for tools and prompt", async t =>
 	assert.match(section.text(), /Config-resolved custom policy/);
 });
 
-test("empty base uses cwd memory fallback", t => {
+test("fresh empty base uses stable user-local DSH memory, not workspace cwd", t => {
 	const root = fixture(t);
 	environment(t, root);
 	const cwd = process.cwd();
 	try {
 		process.chdir(root);
-		assert.equal(resolveMemoryConfig(config).base, join(root, "memory"));
+		assert.equal(resolveMemoryConfig(config).base, join(root, ".dsh", "memory"));
 	} finally { process.chdir(cwd); }
 });
 

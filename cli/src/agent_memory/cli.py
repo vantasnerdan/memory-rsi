@@ -19,6 +19,7 @@ from agent_memory import __version__
 from agent_memory.config import get_agent_id, resolve_base_path, resolve_file_path
 from agent_memory.config_cli import config_group
 from agent_memory.contracts_cli import plan_cmd
+from agent_memory.bootstrap_cli import bootstrap_cmd
 from agent_memory.policy_cli import policy_cmd
 from agent_memory.git_ops import (
     BranchMismatchError,
@@ -96,6 +97,7 @@ def cli(ctx: click.Context, use_json: bool) -> None:
 cli.add_command(config_group)
 cli.add_command(plan_cmd)
 cli.add_command(policy_cmd)
+cli.add_command(bootstrap_cmd)
 
 
 def _log_end(cmd: str, start: float, result_count: int | None = None) -> None:

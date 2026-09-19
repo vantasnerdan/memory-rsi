@@ -13,13 +13,20 @@
         # __main__ shim for exactly that).
         memoryBin: memory
         pythonBin: python3
-        # Default --base directory for the memory repo; empty lets the CLI
-        # auto-detect from its config, AGENT_MEMORY_PATH, or the cwd.
+        # Respect explicit/env/CLI-configured or detected existing memory. A new
+        # installation falls back to this user's DSH_HOME/memory, not a project cwd.
         base: ""
         # Agent identity for writes and "own" scope. Exported to the CLI as
         # AGENT_ID and used as the default --author. Empty = host env.
         agentId: ""
         # Operator-owned allowlist for explicit managed policy sync. No default writes.
         instructionFiles: []
+        # Empty derives a private runtime from this user's DSH_HOME; never install on import.
+        runtimeDir: ""
+        bootstrapPython: python3
+        gitnexusBin: gitnexus
+        gitnexusHome: ""
+        gitnexusTimeoutMs: 120000
+        setupTimeoutMs: 600000
         # Cooperative per-call timeout budget (ms).
         timeoutMs: 60000

@@ -11,13 +11,16 @@ including template-based plans and editable, persistent agent instructions.
 
 agent-memory is progressive-disclosure memory management for autonomous agents: Git-backed markdown
 with YAML frontmatter, where *structure IS the memory* — discovery over retrieval. This repository
-**vendors the full CLI** (under [`cli/`](cli/)) and wraps its entire command surface as DSH tools, so
-your agent gets persistent, searchable, Git-synced memory out of the box.
+**vendors the CLI** (under [`cli/`](cli/)) and exposes memory, bootstrap, and graph-only
+GitNexus tools to DSH agents. Explicit setup provisions private dependencies; merely
+adding or importing the plugin performs no backend installation or data migration.
 
 ## Tools
 
 | Tool | Wraps | Purpose |
 |---|---|---|
+| `memory_setup` | Private runtime + `memory bootstrap` | Readiness, explicit install/initialize, Codex preview/apply, allowlisted instruction sync |
+| `gitnexus` | Audited graph-only GitNexus 1.6.7 | Doctor, status, analyze, lexical graph query, context, impact, detect_changes, list — never embeddings/wiki |
 | `memory_plan` | `memory plan` | Review/edit templates; create shared plans; record evidence, reviews, exceptions, and achievement progress |
 | `memory_policy` | `memory policy` | Read/update persistent prompt policy, inspect history/rollback, preview/sync managed instruction sections |
 | `memory_ls` | `memory ls` | Progressive-disclosure directory listing (directories → entry summaries) |
@@ -55,9 +58,11 @@ work. Achievements reward outcomes with evidence, not tool counts. Built-in codi
 contracts emphasize AST/LSP capability, separation of concerns, single responsibility,
 focused files/functions, validation, and authorized GitOps.
 
-Humans can use the same JSON APIs from a terminal:
+Humans can use the same JSON APIs from a terminal. After private setup, optionally
+add its executables to this shell's PATH (use your configured runtime directory if overridden):
 
 ```sh
+export PATH="${DSH_HOME:-$HOME/.dsh}/plugins/memory-rsi/runtime/python/bin:$PATH"
 memory plan --request '{"action":"templates"}' --base /path/to/memory
 memory policy --request '{"action":"read"}' --base /path/to/memory
 # Multi-line requests: memory plan --request - --base /path/to/memory < request.json
@@ -70,100 +75,125 @@ Shared requirements should not be weakened without explicit human review.
 
 ## Requirements
 
-- A DeepSeek Harness installation (the `dsh` CLI)
-- Python 3.10+ on the host, with the vendored CLI installed (see below)
+- POSIX or Windows through WSL; native Windows setup is unsupported.
+- Node.js **22+**, npm, the `dsh` CLI, Git, and Python **3.10+** with `venv`/pip.
+- `curl` for the launcher, network access during explicit dependency installation,
+  and a platform supported by GitNexus's native database/parser dependencies.
+
+See the [support and validation matrix](docs/bootstrap.md#prerequisites-and-support).
+A working installed-runtime graph smoke is not a claim that every clean installation
+or platform has been validated.
 
 ## Install
 
-### One command, no clone
+### Complete setup
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh -s -- --yes
 ```
 
-Fully scriptable with flags (a bare profile name also works for backwards
-compatibility):
+Optional profile, memory root, and local author:
 
 ```sh
-curl -fsSL .../scripts/install.sh | sh -s -- \
-    --profile my-profile \
-    --agent-id dan \
-    --base ~/agent-memory/memory
+curl -fsSL https://raw.githubusercontent.com/vantasnerdan/memory-rsi/main/scripts/install.sh | sh -s -- \
+  --yes --profile web --base "$HOME/agent-memory" --agent-id my-agent
 ```
 
-| Flag | Meaning | Default |
-|---|---|---|
-| `--profile NAME` | dsh profile to install into | `web` |
-| `--agent-id ID` | memory author identity (`agentId` config) | `git config user.name`, else `$USER` |
-| `--base DIR` | memory repo directory | `$AGENT_MEMORY_PATH` or `~/agent-memory/memory` |
-| `-y, --yes` | never prompt; accept defaults | — |
+The launcher fetches the plugin and installs Node dependencies, then runs the explicit
+setup CLI. `--yes` provisions a **private Python venv**, bundled CLI, **ripgrep 14.1.0**,
+and **GitNexus 1.6.7**; it does not modify global pip/npm installations. It initializes
+missing memory defaults, configures the profile, and syncs the canonical policy's
+managed section to the selected instruction targets (default `$DSH_HOME/AGENTS.md`).
+Existing policy, templates, and unmanaged instruction text are preserved.
 
-Run from a terminal, the installer prompts for anything you did not pass;
-piped or fully flagged, it is non-interactive — safe for agents to drive.
+Defaults derive from your environment: `DSH_HOME` is `$HOME/.dsh` when unset, memory
+lives at `$AGENT_MEMORY_PATH` or `$DSH_HOME/memory`, and private dependencies live at
+`$DSH_HOME/plugins/memory-rsi/runtime`. Author identity derives from the local user,
+not a shipped developer/session identity. Existing installer-managed choices are
+retained on rerun unless overridden. Reload/restart an already-running profile.
 
-The installer is idempotent and owns the whole setup:
-
-1. Installs **or upgrades** the vendored CLI — **pipx** if available, else pip
-   (active environment or `--user`), with a dedicated venv fallback. Existing
-   `memory` commands no longer cause the upgrade to be skipped.
-2. Initializes the memory repo (git init, initial commit with a repo-local
-   identity, BM25 search cache) when it is missing or has no commits.
-3. Adds the plugin to the dsh profile (`dsh plugin --profile <p> add`).
-4. Registers `memory-rsi` in the profile's bundle list (`package.json` /
-   `dsh.profile`).
-5. Writes a managed config block (`agentId`, `base`, timeouts) into the
-   profile's `cordis.patch.yml`, refreshing it on re-runs and leaving
-   hand-edited rows alone.
-
-### From a clone
+From a clone with Node dependencies installed:
 
 ```sh
-git clone https://github.com/vantasnerdan/memory-rsi.git
-cd memory-rsi
-./scripts/install.sh              # interactive prompts for anything unset
-./scripts/install.sh --agent-id dan --base ~/agent-memory/memory
+node bin/setup.js --help
+node bin/setup.js --profile web --status
+node bin/setup.js --profile web --yes
 ```
 
-### Manual install
+`--no-gitnexus` intentionally skips graph provisioning; a fresh memory-only setup is
+not fully graph-ready. Existing repositories without Git identity report incomplete
+and require the owner to configure it explicitly. Bootstrap does not configure remotes
+or push, and upgrades do not overwrite existing user policy/templates.
 
-If you prefer to do each step yourself:
+### Package-only install and first agent turn
 
-```sh
-pipx install ./cli          # preferred: puts `memory` on PATH
-# or
-pip install ./cli           # the plugin then falls back to `python3 -m agent_memory`
+`dsh plugin --profile web add /path/to/memory-rsi` adds the JavaScript plugin; ensure
+`memory-rsi` is also in that profile's bundle list, then reload the profile. This alone
+**does not install private backends or migrate data**. Tools still register when
+backends are missing, so a new agent can start with:
 
-dsh plugin --profile web add /path/to/memory-rsi   # or the published package name
+```js
+memory_setup({ action: "status" })
+// After explicit installation authorization:
+memory_setup({ action: "install", request: '{"graph":true}' })
+memory_setup({ action: "initialize" })
+memory_setup({ action: "status" })
 ```
 
-Then add the package to the profile's bundle list in
-`$DSH_HOME/profiles/web/dsh.profile`:
+Bare plugin setup defaults to an empty instruction-file allowlist. It still injects
+dynamic canonical-policy guidance, but synchronizing global/project instruction files
+requires operator configuration and preview/apply; the full installer handles its
+selected targets explicitly.
 
-```yaml
-dsh:
-  profile:
-    bundles:
-      - "@deepseek-ai/dsh-base"
-      - "@deepseek-ai/dsh-web-app"
-      - "memory-rsi"
-```
+### Codex migration is opt-in
 
-Restart the profile. Verify with `dsh --profile web --dump-config | grep memory-rsi`.
+`--codex-home PATH` with optional repeatable `--memory-dir PATH` creates a **preview**.
+Inspect it, then separately run `--apply-migration FILE` with the same `--base`, or use
+`memory_setup` actions `preview_migration` and `apply_migration`. Selected Markdown is
+copied as reference material; source files stay unchanged. Credentials, provider/MCP
+configuration, sessions, and history are not migration targets. Imported instructions
+are not automatically activated.
+
+See **[Portable bootstrap and migration](docs/bootstrap.md)** for exact commands,
+first-run tools, readiness, instruction synchronization, and troubleshooting.
 
 ## Configuration
 
-Set overrides in the profile's `cordis.patch.yml` (or `$DSH_HOME/cordis.patch.yml`):
+The full installer writes the profile's managed `memory-rsi` configuration. Operators
+can set explicit overrides in its `cordis.patch.yml`; do not add a duplicate plugin row.
 
-```yaml
-- id: memory-rsi
-  config:
-    memoryBin: memory      # console script to invoke
-    pythonBin: python3     # used for the `python -m agent_memory` fallback
-    base: "/path/to/memory" # tools and prompt share this root; empty resolves CLI defaults once at load
-    agentId: ""            # ordinary memory author; plan tools record the calling session ID
-    instructionFiles: []   # operator allowlist, e.g. ["/project/AGENTS.md"]; sync previews before applying
-    timeoutMs: 60000       # cooperative per-call timeout
+| Setting | Purpose |
+|---|---|
+| `base`, `agentId` | Selected memory root and local author identity |
+| `runtimeDir` | Private dependency root; defaults under the local DSH home |
+| `memoryBin`, `pythonBin` | Managed CLI/interpreter paths or explicit operator alternatives |
+| `bootstrapPython` | Python used to create the private venv; default `python3` |
+| `gitnexusBin`, `gitnexusHome` | Audited GitNexus executable and isolated runtime HOME |
+| `instructionFiles` | Operator-owned absolute-path allowlist; bare plugin default `[]` |
+| `timeoutMs` | Memory command budget; default 60000 ms |
+| `gitnexusTimeoutMs` | Graph subprocess budget; default 120000 ms |
+| `setupTimeoutMs` | Installation budget; default 600000 ms |
+
+## Graph-only GitNexus
+
+```js
+gitnexus({ action: "doctor" })
+gitnexus({ action: "analyze", cwd: "/absolute/selected/repository" })
+gitnexus({ action: "query", cwd: "/absolute/selected/repository", query: "checkout" })
+gitnexus({ action: "impact", cwd: "/absolute/selected/repository", symbol: "checkout" })
 ```
+
+Analyze uses `--index-only --skip-git` and never enables embeddings or modifies agent
+instructions/skills. An embedding-enabled `.gitnexusrc` is rejected, not silently
+honored or rewritten. Existing embeddings are preserved. `query` uses **lexical Cypher**,
+not GitNexus's native hybrid query, so even an existing embedding-bearing index cannot
+cause query-vector generation/model loading through that action. No arbitrary flags,
+raw Cypher, wiki/LLM, model download, or embedding-removal surface is exposed.
+
+Graph commands use a private registry/HOME and no optional-extension downloads; FTS
+is not required for lexical graph search. Readiness reports installed/native support
+separately from repository indexing. See the [graph tool guide](docs/bootstrap.md#graph-only-project-tools)
+for the complete allowlist and limitations.
 
 ## Usage (what your agent can do)
 
@@ -185,6 +215,7 @@ npm test                                     # DSH tools, live policy reads, ins
 python3 -m pip install ./cli pytest           # runtime + test dependencies
 PYTHONPATH=cli/src python3 -m pytest cli/tests # isolated CLI regression suite
 python3 scripts/check-language-servers.py     # optional: AST + actual Python/JS LSP symbol queries
+node scripts/smoke-bootstrap.mjs              # networked packed-package install in clean temporary HOME
 ```
 
 ## License
