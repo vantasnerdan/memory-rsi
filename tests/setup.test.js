@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { apply } from "../lib/index.js";
 import { resolveMemoryConfig } from "../lib/prompt.js";
-import { bootstrapRequest } from "../lib/setup.js";
+import { bootstrapRequest, syncSetupInstructions } from "../lib/setup.js";
 import { setupFields } from "../lib/setup-json.js";
 import { readManagedJSON, writeManagedJSON } from "../lib/runtime.js";
 
@@ -50,6 +50,19 @@ test("real registered Python bootstrap supports file-only readiness and repeat i
 	assert.equal(status.ready, true);
 	const second = await bootstrapRequest(config, { action: "initialize" }, { noGit: true });
 	assert.equal(second.changed, false);
+});
+
+test("installer instruction sync uses an accepted automated actor and preserves user text", async t => {
+	const root = isolated(t), target = join(root, "AGENTS.md");
+	const config = { base: join(root, "memory"), agentId: "new-agent", memoryBin: join(root, "absent-memory"), pythonBin: "python3", instructionFiles: [target], timeoutMs: 10000 };
+	await bootstrapRequest(config, { action: "initialize" }, { noGit: true });
+	const original = "Owner instructions\r\nPreserve exact bytes.\r\n";
+	writeFileSync(target, original);
+	const result = await syncSetupInstructions(config);
+	assert.equal(result[0].applied, true);
+	assert.ok(readFileSync(target, "utf8").startsWith(original));
+	assert.match(readFileSync(target, "utf8"), /memory-rsi:policy:begin/);
+	assert.equal((await syncSetupInstructions(config))[0].changed, false);
 });
 
 test("migration preview JSON IO refuses redirected files and preserves unrelated data", async t => {

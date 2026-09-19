@@ -3,9 +3,9 @@
 import { parseArgs } from "node:util";
 import { resolve, join } from "node:path";
 import { pathToFileURL } from "node:url";
-import { dshHome, defaultMemoryBase, runtimeConfig, localAgentId, installRuntime, safeDirectory, readManagedJSON, writeManagedJSON } from "../lib/runtime.js";
+import { dshHome, defaultMemoryBase, runtimeConfig, localAgentId, installRuntime, readManagedJSON, writeManagedJSON } from "../lib/runtime.js";
 import { readManagedSettings, configureProfile, profileDirectory, preflightProfile } from "../lib/profile.js";
-import { bootstrapRequest, setupStatus } from "../lib/setup.js";
+import { bootstrapRequest, setupStatus, syncSetupInstructions } from "../lib/setup.js";
 
 const help = `memory-rsi-setup — portable, graph-only agent bootstrap
 
@@ -66,21 +66,7 @@ export async function main(argv = process.argv.slice(2)) {
 	const installed = await installRuntime(config, { graph: !values["no-gitnexus"] });
 	const initialized = await bootstrapRequest(config, { action: "initialize" }, { noGit: values["no-git"] });
 	if (!initialized.ready) throw new Error(`Memory initialization is incomplete; existing content was preserved. ${JSON.stringify(initialized)}`);
-	const instructions = [];
-	if (!values["no-instructions"]) {
-		for (const target of config.instructionFiles) {
-			await safeDirectory(resolve(target, ".."));
-			const preview = await bootstrapRequest(config, { action: "sync_instructions", target });
-			// --yes authorizes synchronization of this known canonical policy, not
-			// activation of any imported Codex instructions or arbitrary source files.
-			console.error(preview.diff || `Managed instructions unchanged: ${target}`);
-			instructions.push(await bootstrapRequest(config, {
-				action: "sync_instructions", target, apply: true,
-				expected_revision: preview.expected_revision, expected_target_revision: preview.expected_target_revision,
-				actor: "installer", reason: "Explicit setup --yes requested synchronization of the existing canonical policy, preserving unmanaged instructions; this actor label is provenance, not proof of human approval.",
-			}));
-		}
-	}
+	const instructions = values["no-instructions"] ? [] : await syncSetupInstructions(config, { report: message => console.error(message) });
 	const profile = values["no-profile"] ? null : await configureProfile(values.profile, config);
 	let migration;
 	if (values["codex-home"]) {
