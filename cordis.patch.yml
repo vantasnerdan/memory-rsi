@@ -30,3 +30,14 @@
         setupTimeoutMs: 600000
         # Cooperative per-call timeout budget (ms).
         timeoutMs: 60000
+        # Opt in only after reviewing policy/contract disclosure to TypeSafe.
+        # Jev uses a typed decision API, not an OpenAI chat model entry.
+        typesafeEnabled: false
+        # Local metadata-only signal capture; explicit observe persists, mine discloses.
+        rsiTelemetryEnabled: false
+        rsiLearningTimeoutMs: 300000
+        typesafeEndpoint: https://api.typesafe.ai/v1/systemone
+        typesafeModel: jev-latest
+        typesafeApiKeyEnv: TYPESAFE_API_KEY
+        typesafeTimeoutMs: 20000
+        typesafeRetries: 1

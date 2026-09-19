@@ -21,6 +21,7 @@ from agent_memory.config_cli import config_group
 from agent_memory.contracts_cli import plan_cmd
 from agent_memory.bootstrap_cli import bootstrap_cmd
 from agent_memory.policy_cli import policy_cmd
+from agent_memory.rsi_cli import rsi_cmd
 from agent_memory.git_ops import (
     BranchMismatchError,
     commit_and_push,
@@ -97,6 +98,7 @@ def cli(ctx: click.Context, use_json: bool) -> None:
 cli.add_command(config_group)
 cli.add_command(plan_cmd)
 cli.add_command(policy_cmd)
+cli.add_command(rsi_cmd)
 cli.add_command(bootstrap_cmd)
 
 

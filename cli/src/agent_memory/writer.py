@@ -55,6 +55,13 @@ def _validate_category(value: str, context_path: Path | None = None) -> None:
         raise ValueError(message)
 
 
+def _is_rsi_path(path: Path) -> bool:
+    """Reserve the RSI namespace even for aliases or malformed artifact files."""
+    return any(p.name.startswith("rsi-") and p.suffix == ".md" and
+               p.parent.name == "efforts" and p.parent.parent.name == "shared"
+               for p in (path.absolute(), path.resolve()))
+
+
 def _now_iso() -> str:
     """Return current UTC timestamp in ISO-8601 format."""
     return datetime.now(timezone.utc).isoformat()
@@ -150,6 +157,9 @@ def create_entry(
 
     file_path = entry_dir / filename
 
+    if _is_rsi_path(file_path):
+        raise ValueError("RSI artifacts use a reserved immutable namespace; use memory rsi propose/record.")
+
     if file_path.exists():
         raise FileExistsError(f"Entry already exists: {file_path}")
 
@@ -196,6 +206,11 @@ def update_entry(
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
+    # RSI owns this namespace, including damaged files whose metadata no longer
+    # parses. Resolving aliases prevents a generic symlink path bypassing it.
+    if _is_rsi_path(file_path):
+        raise ValueError("RSI artifacts are immutable; use memory rsi propose/record for a new artifact.")
+
     if confidence is not None:
         _validate_enum("confidence", confidence, CONFIDENCE_VALUES)
     if status is not None:
@@ -203,6 +218,8 @@ def update_entry(
 
     text = file_path.read_text(encoding="utf-8")
     fm, existing_body = parse_frontmatter(text)
+    if "rsi" in fm.raw:
+        raise ValueError("RSI artifacts are immutable; use memory rsi propose/record for a new artifact.")
     contract = fm.raw.get("contract")
     if isinstance(contract, dict) and contract.get("kind") in {"plan", "template"}:
         raise ValueError(

@@ -82,5 +82,5 @@ if __name__ == "__main__":
     for file in python_files:
         ast.parse(file.read_text(), filename=str(file))
     print(f"Python AST parsed: {len(python_files)} modules")
-    inspect_server(["pylsp"], [ROOT / "cli/src/agent_memory" / name for name in ("plans.py", "policy.py", "bootstrap.py", "migration.py")], "python")
-    inspect_server(["typescript-language-server", "--stdio"], [ROOT / "lib" / name for name in ("contracts.js", "prompt.js", "runtime.js", "setup.js", "profile.js", "gitnexus.js")], "javascript")
+    inspect_server(["pylsp"], [ROOT / "cli/src/agent_memory" / name for name in ("plans.py", "policy.py", "bootstrap.py", "migration.py", "rsi.py", "rsi_store.py", "rsi_schema.py", "rsi_cli.py", "rsi_corpus.py", "rsi_sections.py", "rsi_lineage.py")], "python")
+    inspect_server(["typescript-language-server", "--stdio"], [ROOT / "lib" / name for name in ("contracts.js", "prompt.js", "runtime.js", "setup.js", "profile.js", "gitnexus.js", "typesafe.js", "rsi.js", "rsi-rubric.js", "rsi-budget.js", "rsi-learning.js", "rsi-learning-data.js", "rsi-learning-rubric.js", "rsi-signals.js", "rsi-diagnostics.js", "rsi-output.js", "rsi-errors.js")], "javascript")

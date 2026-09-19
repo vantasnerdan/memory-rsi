@@ -16,7 +16,7 @@ def test_version() -> None:
     runner = CliRunner()
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
-    assert result.output == "memory, version 0.4.0\n"
+    assert result.output == "memory, version 0.5.0\n"
 
 
 class TestLsCommand:

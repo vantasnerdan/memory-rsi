@@ -116,6 +116,20 @@ Existing plans retain their full old snapshot. Propose shared improvements expli
 seek human review before weakening requirements. This is guidance, not a hidden
 approval mechanism or automated classifier.
 
+## Before work and after outcomes: RSI
+
+With remote assessment explicitly enabled, the DSH `memory_plan create` tool attaches
+TypeSafe policy coaching after the contract is saved and before returning control.
+The standalone Python `memory plan` command stays local; call `memory_rsi preflight`
+in DSH for semantic review. A model score is not an earned achievement, permission,
+or verified compliance. Resolve substantive gaps and acknowledge uncertain or
+unavailable checks before relying on them.
+
+After work, `memory_rsi reflect` captures recorded review state and labelled lessons;
+`prepare → propose → evaluate → promote` supports small evidence-led policy changes.
+The reasoning agent drafts, Jev assesses typed questions, and code preserves exact
+bindings/history. See the [complete RSI design and usage](rsi.md).
+
 ## Editable system-prompt policy
 
 Canonical source: `<base>/shared/policies/agent-policy.md`, plain UTF-8 Markdown

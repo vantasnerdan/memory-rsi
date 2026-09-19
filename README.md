@@ -23,6 +23,7 @@ adding or importing the plugin performs no backend installation or data migratio
 | `gitnexus` | Audited graph-only GitNexus 1.6.7 | Doctor, status, analyze, lexical graph query, context, impact, detect_changes, list — never embeddings/wiki |
 | `memory_plan` | `memory plan` | Review/edit templates; create shared plans; record evidence, reviews, exceptions, and achievement progress |
 | `memory_policy` | `memory policy` | Read/update persistent prompt policy, inspect history/rollback, preview/sync managed instruction sections |
+| `memory_rsi` | TypeSafe System One + `memory rsi` | Preflight coaching; safe session observations; incremental corpus map/reduce; source-linked issue briefs and explicit section-level policy evolution |
 | `memory_ls` | `memory ls` | Progressive-disclosure directory listing (directories → entry summaries) |
 | `memory_toc` | `memory toc` | One entry's frontmatter summary + section titles |
 | `memory_section` | `memory section` | Read a single section by (partial) title — the narrowest read |
@@ -72,6 +73,46 @@ See **[Contracts and policy guide](docs/contracts.md)** for creation, achievemen
 review, template improvements, policy history/rollback, and managed `AGENTS.md` sync.
 Policy is operator-editable; audit labels are not authenticated human approval.
 Shared requirements should not be weakened without explicit human review.
+
+## RSI: one lean policy, intelligent improvement
+
+The **[RSI design and operations guide](docs/rsi.md)** describes the complete loop.
+The reasoning agent writes candidate policy; TypeSafe Jev supplies typed judgments,
+not generated prose. This uses TypeSafe's dedicated `/v1/systemone` API, **not** an
+OpenAI chat/completions custom-model entry. Existing host credentials can be reused.
+
+Remote assessment is disabled by default. An operator opts in with
+`typesafeEnabled: true` after reviewing disclosure of selected policy/contracts.
+With it enabled, `memory_plan create` returns policy preflight coaching before work.
+Separately, `rsiTelemetryEnabled: true` enables bounded session-isolated metadata
+capture: no raw tool arguments, outputs, error messages or transcripts. Explicit
+`observe` saves a snapshot/selected note; only selected `mine` inputs reach Jev.
+Unavailable or uncertain judgments are explicit, never a false pass; classifier
+scores neither grant permissions nor earn achievements.
+
+```js
+memory_rsi({action: "status"})                       // no inference request
+memory_rsi({action: "preflight", request: '{"plan_id":"job"}'})
+memory_rsi({action: "reflect", request: '{"plan_id":"job","lesson":"Evidence-led hypothesis"}'})
+memory_rsi({action: "corpus", request: '{"kind":"plans","limit":4}'})
+memory_rsi({action: "mine", request: '{"kind":"plans","source_ids":["job"],"max_calls":4}'})
+// Follow returned resume fields; unchanged successful maps are cached.
+// reduce selected mapping/insight IDs into source-linked issues with counterexamples.
+memory_rsi({action: "prepare", request: '{"plan_ids":["job"],"insight_ids":[]}'})
+// Prefer whole-section replace/merge/retire edits, not another incident-specific rule.
+// Propose → evaluate → review exact promotion preview → apply or retain baseline.
+```
+
+Maps, insights, assessments and proposals are immutable searchable memory. Reduction
+revisits leaf evidence rather than treating prior model summaries or copied reports
+as independent votes. Issues can belong in a template, ordinary memory or a tool fix,
+not global policy. Prefer coherent revision over accretion; length is descriptive,
+not a small-policy target. Missing coverage and uncertainty remain visible.
+
+Revisions bind policy, contracts and evaluator rubrics; transitive stale/unavailable
+source lineage cannot be promoted. Promotion retains history/rollback and never
+alters active plans or synchronizes instruction files implicitly. Actor labels are
+not approval. Unit and live smoke tests do not establish statistical improvement.
 
 ## Requirements
 
@@ -173,6 +214,11 @@ can set explicit overrides in its `cordis.patch.yml`; do not add a duplicate plu
 | `timeoutMs` | Memory command budget; default 60000 ms |
 | `gitnexusTimeoutMs` | Graph subprocess budget; default 120000 ms |
 | `setupTimeoutMs` | Installation budget; default 600000 ms |
+| `typesafeEnabled` | Explicit remote-assessment opt-in; default `false` |
+| `typesafeEndpoint`, `typesafeModel` | Dedicated HTTPS System One endpoint and Jev model; defaults `https://api.typesafe.ai/v1/systemone`, `jev-latest` |
+| `typesafeApiKeyEnv` | Host credential/environment reference; default `TYPESAFE_API_KEY`; never the secret value |
+| `typesafeTimeoutMs`, `typesafeRetries` | Total inference budget/retry cap; defaults 20000 ms / 1 |
+| `typesafeMaxRequestBytes`, `typesafeMaxResponseBytes` | Bounded transport; defaults 131072 / 262144 |
 
 ## Graph-only GitNexus
 
