@@ -1,0 +1,60 @@
+{
+	"description": "memory-rsi lifecycle hooks. Every hook is off until its plugin option (hook_restore, hook_precompact, hook_subagent_load, hook_subagent_save, hook_policy) is on and a memory base resolves; run.sh exits 0 silently otherwise.",
+	"hooks": {
+		"SessionStart": [
+			{
+				"matcher": "compact",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" restore post-compact-restore.sh",
+						"timeout": 15
+					}
+				]
+			},
+			{
+				"matcher": "startup|resume|clear|compact",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" policy policy-context.sh",
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"PreCompact": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" precompact pre-compact-save.sh",
+						"timeout": 30
+					}
+				]
+			}
+		],
+		"SubagentStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" subagent_load subagent-start-load.sh",
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"SubagentStop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" subagent_save subagent-stop-save.sh",
+						"timeout": 15
+					}
+				]
+			}
+		]
+	}
+}

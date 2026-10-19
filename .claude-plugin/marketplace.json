@@ -1,0 +1,18 @@
+{
+	"$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+	"name": "memory-rsi",
+	"description": "Claude Code plugin for the agent-memory CLI in vantasnerdan/memory-rsi.",
+	"owner": {
+		"name": "vantasnerdan",
+		"url": "https://github.com/vantasnerdan"
+	},
+	"plugins": [
+		{
+			"name": "memory-rsi",
+			"description": "Git-backed markdown memory: progressive-disclosure skill, recall/save/setup commands, opt-in lifecycle hooks.",
+			"source": "./",
+			"category": "productivity",
+			"homepage": "https://github.com/vantasnerdan/memory-rsi"
+		}
+	]
+}

@@ -193,7 +193,7 @@ Add the following to your `.claude/settings.json` (or `~/.claude/settings.json` 
           {
             "type": "command",
             "command": "/path/to/agent-memory/hooks/pre-compact-save.sh",
-            "timeout": 30000
+            "timeout": 30
           }
         ]
       }
@@ -205,7 +205,7 @@ Add the following to your `.claude/settings.json` (or `~/.claude/settings.json` 
           {
             "type": "command",
             "command": "/path/to/agent-memory/hooks/post-compact-restore.sh",
-            "timeout": 15000
+            "timeout": 15
           }
         ]
       }
@@ -217,7 +217,7 @@ Add the following to your `.claude/settings.json` (or `~/.claude/settings.json` 
           {
             "type": "command",
             "command": "/path/to/agent-memory/hooks/subagent-start-load.sh",
-            "timeout": 15000
+            "timeout": 15
           }
         ]
       }
@@ -229,7 +229,7 @@ Add the following to your `.claude/settings.json` (or `~/.claude/settings.json` 
           {
             "type": "command",
             "command": "/path/to/agent-memory/hooks/subagent-stop-save.sh",
-            "timeout": 15000
+            "timeout": 15
           }
         ]
       }
@@ -240,6 +240,7 @@ Add the following to your `.claude/settings.json` (or `~/.claude/settings.json` 
 
 **Important notes:**
 - Paths must be absolute. Relative paths will not resolve correctly.
+- `timeout` is in seconds.
 - The PreCompact timeout is 30 seconds. The save hook targets completion in under 15 seconds but has headroom for slow I/O.
 - The SessionStart matcher is `"compact"` -- this ensures the restore hook only fires after compaction, not on normal session starts.
 - The restore hook uses an internal timeout of 8 seconds per memory query to stay well within the 15-second hook timeout.

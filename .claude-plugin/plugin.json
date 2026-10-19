@@ -1,0 +1,60 @@
+{
+	"name": "memory-rsi",
+	"version": "0.8.0",
+	"description": "Git-backed markdown memory for Claude Code through the agent-memory CLI: progressive-disclosure skill, recall/save/setup commands, and opt-in lifecycle hooks (all off by default).",
+	"author": {
+		"name": "vantasnerdan",
+		"url": "https://github.com/vantasnerdan"
+	},
+	"homepage": "https://github.com/vantasnerdan/memory-rsi",
+	"repository": "https://github.com/vantasnerdan/memory-rsi",
+	"license": "MIT",
+	"keywords": ["memory", "agent-memory", "progressive-disclosure", "markdown", "git"],
+	"skills": "./cli/skills",
+	"commands": "./claude/commands",
+	"hooks": "./claude/hooks/hooks.json",
+	"userConfig": {
+		"memory_base": {
+			"type": "string",
+			"title": "Memory base",
+			"description": "Absolute path of the memory root the hooks read and write. Empty falls back to MEMORY_BASE, then AGENT_MEMORY_PATH; with none of them set every hook stays off.",
+			"default": ""
+		},
+		"agent_id": {
+			"type": "string",
+			"title": "Agent ID",
+			"description": "Identity the hooks write and search as (exported as AGENT_ID). Empty keeps the AGENT_ID already in the environment.",
+			"default": ""
+		},
+		"hook_restore": {
+			"type": "boolean",
+			"title": "Restore after compaction",
+			"description": "After a compaction, read recent compaction snapshots and active efforts from the memory base plus files edited from the transcript, and inject a short summary into the new context. Writes no entries.",
+			"default": false
+		},
+		"hook_precompact": {
+			"type": "boolean",
+			"title": "Save before compaction",
+			"description": "Before a compaction, write one archived snapshot entry (recent requests, decisions, files edited, errors, commands from the transcript) under <agent>/efforts/_archive with no Git commit, then start a background claude -p --model haiku run that may file curated entries.",
+			"default": false
+		},
+		"hook_subagent_load": {
+			"type": "boolean",
+			"title": "Load memory into subagents",
+			"description": "When a subagent starts, search the memory base for its agent type, lessons and active efforts, ask claude -p (haiku, then sonnet; only when ~/.local/bin/claude exists) to assemble a briefing from memory, skills and rules, and inject the result into the subagent's context. Writes no entries.",
+			"default": false
+		},
+		"hook_subagent_save": {
+			"type": "boolean",
+			"title": "Save subagent results",
+			"description": "When a subagent stops, write one archived entry (its task, decisions, files edited, errors and final result from its transcript) under <agent>/efforts/_archive with no Git commit.",
+			"default": false
+		},
+		"hook_policy": {
+			"type": "boolean",
+			"title": "Inject editable policy",
+			"description": "At every session start, resume, clear and compaction, read the editable memory policy (memory policy read) and inject its text into the context. Writes no entries.",
+			"default": false
+		}
+	}
+}
