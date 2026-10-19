@@ -40,7 +40,7 @@
 					{
 						"type": "command",
 						"command": "bash \"${CLAUDE_PLUGIN_ROOT}/claude/hooks/run.sh\" subagent_load subagent-start-load.sh",
-						"timeout": 15
+						"timeout": 90
 					}
 				]
 			}
