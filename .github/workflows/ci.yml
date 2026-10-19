@@ -19,7 +19,7 @@ jobs:
       - run: npm ci
       - run: python3 -m pip install ./cli
       - run: npm test
-      - run: sh -n scripts/install.sh && git diff --check
+      - run: sh -n scripts/install.sh && bash -n claude/hooks/run.sh && bash -n claude/hooks/policy-context.sh && git diff --check
       - run: npm pack --dry-run
 
   clean-bootstrap:

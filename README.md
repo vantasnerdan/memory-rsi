@@ -257,6 +257,48 @@ are not automatically activated.
 See **[Portable bootstrap and migration](docs/bootstrap.md)** for exact commands,
 first-run tools, readiness, instruction synchronization, and troubleshooting.
 
+## Claude Code
+
+The same repository is a Claude Code plugin. It ships the `shared_agent-memory-usage`
+skill, three commands and five lifecycle hooks, all wired to the files under `cli/`, so
+DSH and Claude Code run one copy of the skill and hook scripts. The plugin calls the
+`memory` CLI, which you install once:
+
+```sh
+pipx install "git+https://github.com/vantasnerdan/memory-rsi.git#subdirectory=cli"
+```
+
+Then, inside Claude Code:
+
+```text
+/plugin marketplace add vantasnerdan/memory-rsi
+/plugin install memory-rsi@memory-rsi
+/memory-rsi:setup
+```
+
+`/memory-rsi:setup` reports the CLI version, the memory base and where it came from, and
+warns when the base is only a fallback. `/memory-rsi:recall <topic>` reads with
+progressive disclosure (search, toc, section); `/memory-rsi:save <finding>` writes one
+validated entry with `--no-git`.
+
+Every hook is **off by default**. Turn one on under `/plugin` → memory-rsi → Configure
+options; it then also needs `memory_base` (or `MEMORY_BASE` / `AGENT_MEMORY_PATH`) to
+name an existing directory, else it stays silent. `agent_id` sets `AGENT_ID` for the hooks.
+
+| Option | Event | What it does |
+|---|---|---|
+| `hook_restore` | SessionStart (compact) | Injects recent compaction snapshots and active efforts |
+| `hook_precompact` | PreCompact | Writes an archived snapshot entry; starts background `claude -p --model haiku` curation |
+| `hook_subagent_load` | SubagentStart | Injects memory for the subagent's type, plus a `claude -p` briefing when `~/.local/bin/claude` exists |
+| `hook_subagent_save` | SubagentStop | Writes an archived entry from the subagent's transcript |
+| `hook_policy` | SessionStart (all) | Injects the editable policy from `memory policy` |
+
+Entries written by hooks use `--no-git`. There is no MCP server: Claude Code already has
+Bash, and the CLI is built for progressive disclosure, so a server would only add a
+resident process and tool schemas to every session. To let the commands run the CLI
+without a permission prompt, add `"Bash(memory:*)"` to `permissions.allow` in
+`.claude/settings.json`.
+
 ## Configuration
 
 The full installer writes the profile's managed `memory-rsi` configuration. Operators
