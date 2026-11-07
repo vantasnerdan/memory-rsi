@@ -39,12 +39,11 @@ def change(store, body="# Rewards > gates\n\nRevised policy.\n", **extra):
 def test_virtual_default_and_asset_contract(store):
     result = read(store)
     assert result["body"] == DEFAULT_POLICY
-    assert DEFAULT_POLICY.startswith("# Rewards > gates")
+    assert DEFAULT_POLICY.startswith("# Deliver useful outcomes")
     assert result["revision"] == content_revision(DEFAULT_POLICY)
     assert not result["exists"]
     assert not store.path().exists()
-    assert "template" in DEFAULT_POLICY and "human review" in DEFAULT_POLICY
-    assert "higher-priority" in DEFAULT_POLICY and "work-item IDs" in DEFAULT_POLICY
+    assert "review" in DEFAULT_POLICY.lower() and "higher-priority" in DEFAULT_POLICY
 
 
 def test_update_history_and_rollback_survive_new_store(store):
@@ -519,3 +518,17 @@ def test_cli_instruction_allowlist_and_sync_flow(tmp_path):
     assert applied.exit_code == 0, applied.output
     assert json.loads(applied.output)["applied"]
     assert DEFAULT_POLICY.strip() in target.read_text()
+
+
+def test_missing_recorded_policy_requires_explicit_restore(store):
+    changed = change(store, "# Current\n\nRetired guidance stays retired.\n")
+    store.path().unlink()
+    with pytest.raises(PolicyError) as exc:
+        read(store)
+    assert exc.value.code == "policy_missing"
+    assert store.execute({"action": "history"}, no_git=True)["current_revision"] is None
+    restored = store.execute({"action": "rollback", "revision": changed["revision"], "expected_revision": "missing",
+                              "actor": "agent", "reason": "Restore exact recorded policy"}, no_git=True)
+    assert restored["revision"] == changed["revision"]
+    assert read(store)["body"] == "# Current\n\nRetired guidance stays retired.\n"
+    assert store.execute({"action": "history"}, no_git=True)["events"][-1]["action"] == "restore"

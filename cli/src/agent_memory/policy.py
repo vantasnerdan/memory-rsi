@@ -36,8 +36,9 @@ BEGIN_MARKER = "<!-- memory-rsi:policy:begin -->"
 END_MARKER = "<!-- memory-rsi:policy:end -->"
 _REVISION = re.compile(r"sha256:[0-9a-f]{64}\Z")
 REVIEW_GUIDANCE = (
-    "Shared-policy weakening should receive human review. Actor labels are "
-    "self-reported provenance, not verified authorization or enforced approval."
+    "Use the same authorized, revision-checked writer for adding, revising, relaxing, or retiring guidance. "
+    "Review in proportion to the applicable risk; preserve user requirements and security boundaries. "
+    "Actor labels are self-reported provenance, not verified authorization."
 )
 
 
@@ -184,6 +185,10 @@ class PolicyStore:
     def _current(self) -> dict:
         path = self.path()
         exists = path.exists()
+        if not exists:
+            history = self.path(HISTORY_RELATIVE_PATH)
+            if any((history / name).is_dir() and any((history / name).glob("*.json")) for name in ("snapshots", "events")):
+                raise PolicyError("Canonical policy is missing but history exists; restore a recorded revision explicitly", "policy_missing")
         body = _read_text(path) if exists else DEFAULT_POLICY
         return {"body": body, "revision": content_revision(body), "exists": exists, "path": str(path)}
 
@@ -239,11 +244,15 @@ class PolicyStore:
             for path in sorted(directory.glob("*.json")):
                 path = self.path(path.relative_to(self.root))
                 event = _json_file(path)
-                if event.get("id") != path.stem or event.get("action") not in ("update", "rollback"):
+                if event.get("id") != path.stem or event.get("action") not in ("update", "rollback", "restore"):
                     raise PolicyError("Corrupt policy history event", "history_error")
                 _identity(event)
                 _string(event.get("at"), "history timestamp", limit=128)
-                self._load_snapshot(_revision(event.get("previous_revision")))
+                if event.get("action") == "restore":
+                    if event.get("previous_revision") != "missing":
+                        raise PolicyError("Corrupt restore event", "history_error")
+                else:
+                    self._load_snapshot(_revision(event.get("previous_revision")))
                 self._load_snapshot(_revision(event.get("revision")))
                 events.append(event)
         return {"current_revision": current["revision"], "current_recorded": any(item["revision"] == current["revision"] for item in snapshots), "snapshots": sorted(snapshots, key=lambda item: item["observed_at"]), "events": sorted(events, key=lambda item: (item["at"], item["id"]))}
@@ -323,8 +332,27 @@ class PolicyStore:
         if unknown:
             raise PolicyError("Unknown request fields: " + ", ".join(sorted(unknown)))
         with _lock(self.path(Path("shared/policies/.agent-policy.lock"))):
-            current = self._current()
             common = {"ok": True, "action": action}
+            try:
+                current = self._current()
+            except PolicyError as exc:
+                if exc.code != "policy_missing":
+                    raise
+                if action == "history":
+                    return {**common, **self._history(request, {"revision": None})}
+                if action != "rollback":
+                    raise
+                actor, reason = _identity(request)
+                if request.get("expected_revision") != "missing":
+                    raise PolicyError("Expected revision must be missing to restore a deleted policy", "revision_conflict")
+                revision = _revision(request.get("revision"), "revision")
+                snapshot = self._load_snapshot(revision)
+                repo = _git_prepare(self.root, no_git, allow_non_main_branch, [self.path(), self._snapshot_path(revision)])
+                if self.path().exists():
+                    raise PolicyError("Policy appeared during restore", "revision_conflict")
+                _atomic_write(self.path(), snapshot["body"])
+                event = self._event("restore", "missing", revision, actor, reason)
+                return {**common, "path": str(self.path()), "revision": revision, "previous_revision": "missing", "write_success": True, "review_guidance": REVIEW_GUIDANCE, "git": _git_publish(repo, [self.path(), event], no_git=no_git, message="memory: restore agent policy")}
             if action == "read":
                 maximum = request.get("max_chars", MAX_BODY_CHARS)
                 if type(maximum) is not int or not 1 <= maximum <= MAX_BODY_CHARS:
@@ -344,7 +372,10 @@ class PolicyStore:
             repo = _git_prepare(self.root, no_git, allow_non_main_branch, owned)
             paths = [self._save_snapshot(current["body"], "external" if current["exists"] else "default", "Observed canonical content before explicit policy change; external author not authenticated"), self._save_snapshot(body, actor, reason)]
             # Both rollback endpoints are durable before the canonical swap.
-            latest = self._current()
+            # On first creation, this transaction itself just wrote the initial
+            # history snapshots.  A still-absent canonical file is therefore
+            # the same initial state, not a deleted historical policy.
+            latest = current if not current["exists"] and not self.path().exists() else self._current()
             if latest["revision"] != current["revision"] or latest["exists"] != current["exists"]:
                 raise PolicyError("Policy changed during update", "revision_conflict")
             _atomic_write(self.path(), body)

@@ -70,7 +70,7 @@ def section_index(body):
 
 
 def apply_section_edits(original, edits):
-    """Replace/merge/retire explicitly selected sections against one original snapshot.
+    """Add/replace/merge/retire sections against one original snapshot.
 
     No edits are applied sequentially to shifting offsets. A merge selects adjacent
     sections in document order. Unselected bytes are retained exactly.
@@ -83,16 +83,25 @@ def apply_section_edits(original, edits):
     for edit in edits:
         shape(edit, ("operation", "section_ids", "reason"), ("body",), label="section edit")
         operation = edit["operation"]
-        if operation not in ("replace", "merge", "retire"):
-            raise ContractError("section operation must be replace, merge, or retire")
+        if operation not in ("add", "replace", "merge", "retire"):
+            raise ContractError("section operation must be add, replace, merge, or retire")
         string(edit["reason"], "section edit reason", 4096)
         ids = edit["section_ids"]
-        if not isinstance(ids, list) or not ids or any(not isinstance(key, str) for key in ids):
-            raise ContractError("section_ids must be a nonempty list of section IDs")
+        if not isinstance(ids, list) or any(not isinstance(key, str) for key in ids) or (not ids and operation != "add"):
+            raise ContractError("section_ids must identify the sections, or be empty when appending")
         if len(ids) != len(set(ids)) or any(key in used for key in ids):
             raise ContractError("section edits overlap or repeat an ID")
         if any(key not in by_id for key in ids):
             raise ContractError("unknown or stale section ID; read current section inventory")
+        if operation == "add" and len(ids) > 1:
+            raise ContractError("add accepts at most one section anchor")
+        if operation == "add" and not ids:
+            replacement = string(edit.get("body"), "new section body", MAX_BODY_CHARS)
+            if original and not original.endswith("\n"):
+                replacement = "\n" + replacement
+            changes.append({"operation": operation, "section_ids": ids, "reason": edit["reason"],
+                            "start": len(original), "end": len(original), "body": replacement})
+            continue
         positions = [by_id[key][0] for key in ids]
         if positions != list(range(positions[0], positions[0] + len(positions))):
             raise ContractError("merge/retirement section IDs must be adjacent in document order")
@@ -107,6 +116,15 @@ def apply_section_edits(original, edits):
         else:
             replacement = string(edit.get("body"), "replacement section body", MAX_BODY_CHARS)
         first, last = by_id[ids[0]][1], by_id[ids[-1]][1]
+        if operation == "add":
+            if last["end"] and not original[:last["end"]].endswith("\n"):
+                replacement = "\n" + replacement
+            if last["end"] < len(original) and not replacement.endswith("\n"):
+                raise ContractError("new section before another section must end with a newline")
+            changes.append({"operation": operation, "section_ids": ids, "reason": edit["reason"],
+                            "start": last["end"], "end": last["end"], "body": replacement})
+            used.update(ids)
+            continue
         if replacement and last["end"] < len(original) and not replacement.endswith("\n"):
             raise ContractError("replacement before another section must end with a newline")
         if replacement and first["start"] and not original[:first["start"]].endswith("\n"):

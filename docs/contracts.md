@@ -94,27 +94,16 @@ The review is auditable evidence of a judgment, not automated verification that 
 artifact is true. No points or tool-call counters are awarded. The same actor may
 review in a separate operation; independent reviewers are encouraged, not enforced.
 
-Unavailable capabilities use `exceptions: [{id, requirement_id, reason, alternative}]`,
-then `exception_reviews: [{exception_id, verdict, note}]` in a separate update.
-Completion needs reviewed evidence or accepted exceptions for all assigned
-requirements, with no unreviewed exceptions. `validate` reports missing requirements
-and progress without treating unfinished work as invalid. Finally update `status`
-to `complete` for finished work items. Honest exceptions remain visible.
+Record applicable evidence and genuine exceptions without converting process bookkeeping into a completion gate. Completion reflects the user's actual objective and real requirements. `validate` reports the recorded state, rather than substituting for judgment.
 
-Optimistic revisions and a cooperative interprocess lock prevent lost updates.
-Re-read after conflicts and merge your scoped contribution. Goal, requirements,
-assignments, and work-item topology are immutable after creation in this version;
-create an explicitly linked successor plan for a scope/ownership change rather
-than silently weakening an active contract.
+Optimistic revisions and a cooperative interprocess lock prevent lost updates. Re-read after conflicts. `steer` records the latest user direction while retaining the original task and history; it can withdraw user-withdrawn task requirements and exempt process-scoped template items without erasing security boundaries. Amendments remain available for changes that need a successor.
 
 ### Improve the template, not every plan
 
 `save_template` takes `template_id`, `revision`, and `template` (the exact structure
 returned by review). Use JSON `null` as revision for a new named template; use the
 reviewed revision to update an existing template or deliberately override a built-in.
-Existing plans retain their full old snapshot. Propose shared improvements explicitly;
-seek human review before weakening requirements. This is guidance, not a hidden
-approval mechanism or automated classifier.
+Existing plans retain their original snapshot and recorded steering. Authorized revision-checked edits can also relax or retire obsolete process guidance; actual user requirements and security boundaries remain authoritative.
 
 ## Before work and after outcomes: RSI
 

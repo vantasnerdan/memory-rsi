@@ -6,8 +6,7 @@
 # file is MEMORY.md. If so:
 #
 #   - On READ:  Injects additionalContext reminding to search deep memory
-#   - On WRITE/EDIT: Injects additionalContext reminding to file to long-term
-#                    storage first, then update MEMORY.md with pointers only
+#   - On WRITE/EDIT: Offers the long-term store for reusable knowledge
 #
 # Hook config (settings.json):
 #   "PreToolUse": [{
@@ -101,12 +100,12 @@ fi
 
 if [[ "$TOOL_NAME" == "Read" ]]; then
     # Inject context reminder — allow the read but add guidance
-    output_context "[memory-md-guard] STEP 0: Load skill shared_agent-memory-usage for full CLI syntax and patterns. THEN: MEMORY.md is a hot cache index (200-line limit), not the full memory store. Search deep memory: memory search \"<topic>\" --base ${MEMORY_BASE}. Drill in: memory toc <file> then memory section <file> \"<heading>\". MEMORY.md snippets point to full entries — use the CLI for complete context."
+    output_context "[memory-md-guard] MEMORY.md is a short index; when helpful, search the larger memory store with memory search \"<topic>\" --base ${MEMORY_BASE} and read relevant sections."
     hook_log_success
 
 elif [[ "$TOOL_NAME" == "Write" || "$TOOL_NAME" == "Edit" ]]; then
-    # Inject reminder — allow the write but guide the agent to file first
-    output_write_context "[memory-md-guard] STEP 0: Load skill shared_agent-memory-usage for full CLI syntax and patterns. THEN: Before writing to MEMORY.md, file new content to long-term storage first: memory new \"<name>\" -d \"<desc>\" -c atlas --confidence working -b \"<body>\" --base ${MEMORY_BASE}, or memory update \"<path>\" -b \"<body>\" --base ${MEMORY_BASE}. THEN update MEMORY.md with only a brief pointer/snippet referencing the filed entry. MEMORY.md is a 200-line hot cache index — keep entries concise. If you have already filed via CLI, proceed with adding a pointer here."
+    # This is a reminder, not a prerequisite to the requested write.
+    output_write_context "[memory-md-guard] Keep MEMORY.md concise. For reusable engineering knowledge, the memory CLI can store details and leave a short pointer here; preserve the user's requested edits and avoid filing routine acknowledgements as lessons."
     hook_log_success
 fi
 

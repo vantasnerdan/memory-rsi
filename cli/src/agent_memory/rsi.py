@@ -235,9 +235,9 @@ def _list(store, request):
 
 
 def _promote(store, request):
-    shape(request, ("action", "proposal_id", "evaluation_id", "expected_revision", "review_note", "actor"), ("apply",), label="promote request")
+    shape(request, ("action", "proposal_id", "expected_revision", "review_note", "actor"), ("apply", "evaluation_id"), label="promote request")
     proposal_id = identifier(request["proposal_id"], "proposal_id")
-    evaluation_id = identifier(request["evaluation_id"], "evaluation_id")
+    evaluation_id = identifier(request["evaluation_id"], "evaluation_id") if request.get("evaluation_id") is not None else None
     revision(request["expected_revision"], policy=True)
     string(request["review_note"], "review_note", 2048)
     if not isinstance(request["actor"], str) or request["actor"] not in ("human", "agent"):
@@ -249,15 +249,12 @@ def _promote(store, request):
     # PolicyStore.execute acquires it itself; its CAS closes that policy race.
     with _policy_lock(store):
         proposal = _proposal(store, proposal_id)
-        evaluation = store.read(evaluation_id)
-        if evaluation["kind"] != "evaluation" or evaluation["bindings"].get("proposal_id") != proposal_id:
-            raise ContractError("evaluation must bind this exact proposal")
-        if not same_bindings(evaluation["bindings"], proposal["bindings"]):
-            raise ContractError("evaluation source revisions do not match proposal")
-        # Availability is a technical prerequisite, not a semantic acceptance
-        # score. Low scores and negative judgments are still advisory evidence.
-        if evaluation["data"].get("status") != "assessed":
-            raise ContractError("evaluation unavailable: data.status must be assessed before promotion")
+        evaluation = store.read(evaluation_id) if evaluation_id is not None else None
+        if evaluation is not None:
+            if evaluation["kind"] != "evaluation" or evaluation["bindings"].get("proposal_id") != proposal_id:
+                raise ContractError("evaluation must bind this exact proposal")
+            if not same_bindings(evaluation["bindings"], proposal["bindings"]):
+                raise ContractError("evaluation source revisions do not match proposal")
         context = _check_current(store, proposal["bindings"], adopt_insights=True)
         if request["expected_revision"] != context["policy"]["revision"]:
             raise ContractError("stale expected canonical revision")
@@ -265,14 +262,14 @@ def _promote(store, request):
         result = {
             "proposal_id": proposal_id, "evaluation_id": evaluation_id,
             "proposal_revision": store.exported(proposal)["revision"],
-            "evaluation_revision": store.exported(evaluation)["revision"],
+            "evaluation_revision": store.exported(evaluation)["revision"] if evaluation is not None else None,
             "applied": False, "changed": candidate != original,
             "expected_revision": context["policy"]["revision"],
             "proposed_revision": content_revision(candidate),
             "diff": "".join(difflib.unified_diff(original.splitlines(keepends=True), candidate.splitlines(keepends=True),
                                                 fromfile="canonical/agent-policy.md", tofile=f"proposal/{proposal_id}")),
             "actor": request["actor"], "review_note": request["review_note"],
-            "review_guidance": REVIEW_GUIDANCE + " Model judgments never authorize automatic promotion or override platform permissions.",
+            "review_guidance": REVIEW_GUIDANCE,
         }
     if not apply:
         return result, None, []
@@ -284,8 +281,8 @@ def _promote(store, request):
              store.policy._snapshot_path(result["proposed_revision"])]
     repo = store.prepare(paths)
     reason = (f"RSI promotion: proposal={proposal_id}@{result['proposal_revision']}; "
-              f"evaluation={evaluation_id}@{result['evaluation_revision']}; "
-              f"review_note={request['review_note']}")
+              + (f"evaluation={evaluation_id}@{result['evaluation_revision']}; " if evaluation is not None else "")
+              + f"review_note={request['review_note']}")
     store.policy.commit_event = lambda event: store.commit_local(repo, [*paths, event])
     try:
         updated = store.policy.execute({"action": "update", "body": candidate,

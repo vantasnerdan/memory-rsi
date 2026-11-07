@@ -24,7 +24,7 @@ GENERAL = {
     ],
     "boundaries": ["Permissions and safety instructions remain binding.",
                    "Reward outcomes with evidence, never tool-call counts.",
-                   "Reported evidence is not reviewed achievement; exceptions must be explicit and accepted."],
+                   "Keep evidence and uncertainty honest; review only as the task warrants."],
 }
 CODING = deepcopy(GENERAL)
 CODING.update(
@@ -33,21 +33,21 @@ CODING.update(
     good="Small cohesive changes preserve responsibilities and have reviewed behavioral evidence.",
 )
 CODING["achievements"] += [
-    {"id": "ast", "description": "Use AST-aware exploration to map affected symbols before modifying.",
+    {"id": "ast", "scope": "process", "description": "Use AST-aware exploration when it helps map affected symbols.",
      "evidence": "Record the inspected symbols, dependencies, and resulting implementation decisions."},
-    {"id": "lsp", "description": "Use available LSP navigation/diagnostics; otherwise record a capability exception.",
+    {"id": "lsp", "scope": "process", "description": "Use available LSP navigation or diagnostics when useful.",
      "evidence": "Record LSP findings, or an accepted exception naming unavailable capability and substitute checks."},
-    {"id": "design", "description": "Respect SRP and separation of concerns; avoid god files and god functions.",
+    {"id": "design", "scope": "process", "description": "Respect SRP and separation of concerns; avoid god files and god functions.",
      "evidence": "Review responsibility boundaries, interfaces, and focused module/function changes."},
-    {"id": "gitops", "description": "Use GitOps: inspect diffs and state, preserve unrelated changes, and report delivery accurately.",
+    {"id": "gitops", "scope": "process", "description": "Use GitOps: inspect diffs and state, preserve unrelated changes, and report delivery accurately.",
      "evidence": "Record diff review, tests, scoped persistence and authorized commit/push/deployment results or exceptions."},
 ]
 CODING["steps"] = [
-    "Map affected symbols using AST and assess LSP capability before editing.",
+    "Map affected code using tools proportionate to the change.",
     "Separate responsibilities and implement focused changes.",
     "Run relevant tests and diagnostics, review the diff, and verify delivery.",
 ]
-CODING["boundaries"] += ["Never silently weaken the pinned requirements of an active plan.",
+CODING["boundaries"] += ["Follow current user direction and preserve genuine requirements.",
                            "Do not commit, push, or deploy beyond the user's authorization."]
 BUILTINS = {"general": GENERAL, "coding": CODING}
 TEMPLATE_FIELDS = ("title", "purpose", "good", "achievements", "steps", "validation", "boundaries")
@@ -56,10 +56,12 @@ TEMPLATE_FIELDS = ("title", "purpose", "good", "achievements", "steps", "validat
 def requirements(value, label):
     result = sequence(value, label, nonempty=True)
     for item in result:
-        shape(item, ("id", "description", "evidence"), label=label)
+        shape(item, ("id", "description", "evidence"), ("scope",), label=label)
         identifier(item["id"], "requirement id")
         text(item["description"], "description")
         text(item["evidence"], "evidence expectation")
+        if "scope" in item and item["scope"] not in ("outcome", "process"):
+            raise ContractError("requirement scope must be outcome or process")
     return result
 
 
@@ -82,7 +84,7 @@ def validate_template(template):
 
 
 def render_template(template):
-    sections = [f"# {template['title']}", "Rewards > gates: useful outcomes and reviewed evidence come first; safety remains a boundary.",
+    sections = [f"# {template['title']}", "Rewards > gates: useful outcomes and honest evidence come first; safety remains a boundary.",
                 "## Purpose", template["purpose"],
                 "## What good looks like", template["good"], "## Achievements and evidence"]
     for item in template["achievements"]:

@@ -58,6 +58,7 @@ max 120 chars (empty string if not valuable)
 
 NOT valuable (set valuable=false):
 - Routine task completions (merged PR, posted issue)
+- Acknowledgements, handoff counts, receipts or process bookkeeping
 - File modification lists (git has this)
 - Error logs unless they reveal a reusable pattern
 - Agent IDs, session metadata, timestamps
@@ -66,11 +67,16 @@ NOT valuable (set valuable=false):
 
 VALUABLE (set valuable=true):
 - Decisions with reasoning NOT obvious from code/git
-- Corrections received from teammates
-- Patterns discovered (reusable knowledge)
+- An engineering lesson with the observed failure, actual fix and when it applies
+- A demonstrated successful technique with context that makes it reusable
+- A correction only when it explains an applicable mistake or resolution
 - Gotchas that would save time in future sessions
 - Cross-agent insights
 - Tool limitations discovered
+
+Keep uncertainty honest and do not turn a one-off incident into a mandatory
+process rule, approval step or extra review gate. User steering changes the
+work; do not preserve an obsolete plan over the user's current request.
 
 Output ONLY the JSON object. No explanation, no preamble.
 

@@ -1,5 +1,7 @@
 # Review: measurable, reward-shaped policy improvement
 
+> Historical evidence only: the workflow described here is not a gate or required review for future work.
+
 ## Scope and baseline
 
 Reviewed `c8ea220` (the TypeSafe/RSI implementation) and `1c42c79` (delivery evidence), against `origin/main` at `1c42c79808b1dfa8a9827af06d75e3b04ded9cbe`.

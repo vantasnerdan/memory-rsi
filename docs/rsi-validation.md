@@ -1,5 +1,7 @@
 # RSI 0.4.0 validation and delivery
 
+> Historical evidence only: the workflow described here is not a gate or required review for future work.
+
 ## Governing contracts
 
 - Original: `memory-rsi-typesafe-v04`.

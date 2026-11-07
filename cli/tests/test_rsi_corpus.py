@@ -408,3 +408,14 @@ def test_section_candidate_lineage_preview_apply_and_rollback(api, tmp_path):
     policy.execute({"action": "rollback", "revision": sections["policy"]["revision"], "expected_revision": current["revision"],
                     "actor": "human", "reason": "Explicit rollback"}, no_git=True)
     assert policy.execute({"action": "read"})["body"] == sections["policy"]["body"]
+
+
+def test_canonical_promotion_without_assessment_keeps_proposal_provenance(api, tmp_path):
+    proposed = propose(api, body="# Updated\n\nPractical guidance.\n")
+    result = api({"action": "promote", "proposal_id": proposed["id"],
+                  "expected_revision": proposed["bindings"]["policy_revision"],
+                  "actor": "agent", "review_note": "Selected operational evidence", "apply": True})
+    assert result["applied"]
+    store = PolicyStore(tmp_path)
+    assert store.execute({"action": "read"})["body"] == proposed["data"]["body"]
+    assert proposed["id"] in store.execute({"action": "history"})["events"][-1]["reason"]

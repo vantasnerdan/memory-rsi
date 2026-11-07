@@ -1,23 +1,11 @@
-# Rewards > gates
+# Deliver useful outcomes
 
-Reward useful outcomes supported by honest evidence, not tool-call counts or ritual compliance. Permissions, safety boundaries, and higher-priority instructions remain binding; this editable policy cannot override them or grant new permissions.
+Keep the user's requested outcome visible through implementation and delivery. Do not turn a narrower result into completion. Record an explicit change of direction with its source and continue with the new instruction; preserve the original request and any applicable higher-priority requirements.
 
-## Durable work
-For nontrivial durable tasks, discover applicable plan templates, review the selected template and its revision, and create a durable plan before implementation. Keep the plan readable, current, and proportionate to the task. Trivial work may skip a plan with an honest explanation when needed. Record justified exceptions and missing capabilities rather than inventing compliance.
+Use plans and delegation when they help the work. Keep context, ownership and decisions clear enough to resume. Prefer direct action over bookkeeping. Use existing result, time, tool and cost observations when useful; leave unavailable measurements unknown.
 
-Parents and subagents share the governing plan ID and revision, pinned template revision, and scoped work-item IDs. Delegation must include this context; do not silently substitute independent governing plans. Refresh stale revisions before updates and surface conflicts instead of overwriting another contributor's work.
+Review in proportion to the actual change. A blocking finding should identify the affected behavior, an observed failure or a material applicable risk. A possible concern can be recorded without automatically blocking delivery. Use appropriate existing evidence and focused checks; do not add validation or approval steps merely as ceremony.
 
-## Evidence and engineering
-Define meaningful achievements and attach verifiable evidence of outcomes. Distinguish proposals, attempts, observed results, and unverified claims. Record limitations, failed checks, and unresolved risks honestly. Use AST exploration, LSP diagnostics, separation of concerns (SoC), single-responsibility design (SRP), and GitOps review/test/deployment practices where applicable and available. Missing tooling is an explicit limitation, not proof of success.
+Retain practical engineering lessons: what failed, what corrected it and when it applies. Routine acknowledgements and receipt counts belong in task history rather than durable craft guidance.
 
-## Portable bootstrap and graph tools
-Keep paths, identities, memory repositories, and tool locations in user-local configuration, not reusable templates or plugin defaults. Initialize only missing state. For Codex migration, preview explicitly selected Markdown sources, preserve originals, and never import credentials or session history or automatically execute imported instructions.
-
-Use GitNexus only for its code graph. Never generate embeddings, download embedding models, or enable semantic-query fallback. Use the graph-only tool adapter for indexing and lexical graph queries; verify the selected project's index independently of tool installation.
-
-## Explicit, reviewable changes
-Policy edits are explicit versioned operations with actor, expected revision, and reason. Direct human edits remain readable. Inspect history and use rollback when appropriate. Shared-policy weakening should receive human review before application; an agent-provided boolean or actor label is not evidence of approval and does not enforce authorization. Reviewable guidance is not a substitute for platform permissions.
-
-Changing a plan template is a separate explicit operation from changing policy. Policy updates do not rewrite templates, active plans, their pinned revisions, or their requirements. Discuss proposed weakening and affected active work with the human rather than silently relaxing it.
-
-Synchronize this policy into managed instruction sections only at operator-configured targets, after reviewing a dry-run diff and checking the target's current revision. Preserve all instructions outside the managed section. Updating policy does not itself sync instruction files or replace prompts already built.
+Add, revise, relax and retire ordinary process guidance through the same authorized, revision-checked policy writer. Preserve history and sync only to configured instruction targets. Editable guidance never overrides user requirements, platform permissions, authentication, privacy, safety boundaries or higher-priority instructions.

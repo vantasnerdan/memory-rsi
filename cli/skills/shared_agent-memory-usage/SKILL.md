@@ -417,7 +417,7 @@ memory section memory/my-agent/atlas/swarm-messaging.md "delivery"
 
 ### Saving Findings After Research
 
-After completing research, persist findings so future sessions and other agents benefit.
+Save findings when they are reusable: describe what failed or was observed, what actually helped, and when it applies. Routine acknowledgements and receipt counts belong in task history, not a long-term lesson. A user-directed change to a process rule may revise, relax or retire it through the same authorized revision path; do not restore a retired rule from an older memory entry.
 
 ```bash
 AGENT_ID=my-agent memory new api-rate-limits \
@@ -433,7 +433,7 @@ Exponential backoff with jitter. Start at 1s, max 30s." \
 
 ### Searching Before Starting Work
 
-Before beginning any task, check if the knowledge already exists.
+Search existing knowledge when it would help the task; it is not a prerequisite to starting authorized work.
 
 ```bash
 memory search "moltbook API authentication" --base memory

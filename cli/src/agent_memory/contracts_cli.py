@@ -11,7 +11,7 @@ import click
 from agent_memory.config import get_agent_id, resolve_base_path
 from agent_memory.contracts_store import ContractError, ContractStore, shape, text
 from agent_memory.plan_templates import list_templates, review_template, save_template
-from agent_memory.plans import create_plan, read_plan, update_plan
+from agent_memory.plans import create_plan, read_plan, update_plan, steer_plan
 
 
 def _review_examples(review, actor):
@@ -37,9 +37,9 @@ def _review_examples(review, actor):
     review["guidance"] = (
         "Read/review before creating. Template snapshots are pinned; task additions may only add requirements. "
         "Every requirement must belong to a work item. Updates require the latest revision and one work_item_id. "
-        "Evidence/exception reports are append-only; review existing reports in a separate update. "
-        "Completion requires reviewed evidence or accepted exceptions for every scoped requirement. "
-        "Scope, assignments, work-item topology and task acceptance fields are immutable; create an explicit successor plan to change them. "
+        "Evidence and reviews remain distinct; use review when useful and connect blocking findings to an applicable reason. "
+        "Completion requires evidence for the current requested outcome or an accepted exception. "
+        "Steer records later direction against the current revision, preserves the original task, and reopens work when the requested outcome changes. "
         "Actor labels record provenance, not authenticated authority. Optional task additions: "
         "achievements and validation [{id,description,evidence}], steps and boundaries [nonempty string]."
     )
@@ -72,6 +72,8 @@ def execute_request(request, base, *, actor="unknown", no_git=False, allow_non_m
             return result
         if action == "update":
             return update_plan(store, request, actor)
+        if action == "steer":
+            return steer_plan(store, request, actor)
         raise ContractError(f"unknown plan action: {action}")
 
 

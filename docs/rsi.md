@@ -38,45 +38,9 @@ service (or named environment variable); they never enter a memory artifact.
 
 ### The work loop
 
-1. Discover and review the appropriate template, then create the shared plan.
-2. When explicitly enabled by the operator, plan creation automatically runs a
-   policy preflight **before returning the plan to the agent**. It snapshots the
-   current policy and the exact saved contract, batches independent questions,
-   preserves raw uncertainty and returns concrete improvement opportunities.
-3. Address meaningful gaps before implementation. A missing/uncertain assessment
-   is reported honestly, never presented as compliance. Create an explicit
-   successor contract for acceptance/scope changes; do not rewrite pinned terms.
-4. Work and delegate under the same plan and scoped work items. Pre-work scores
-   are not earned achievements. Credit is grounded in observed outcome evidence
-   and explicit review after the effort.
-5. Reflect on the contract's reported evidence, accepted/rejected reviews,
-   exceptions and remaining work. Self-reported lessons are labelled as such.
-6. Periodically prepare a small policy improvement from selected outcomes. Draft
-   one coherent edit: state the problem, expected benefit, counterexamples,
-   representative replay cases and rollback condition. Prefer no change over
-   unsupported growth. Job-specific knowledge should remain in templates/contracts.
-7. Evaluate the candidate against the unchanged baseline and selected contracts.
-   Keep preservation risks separate from compensating quality preferences.
-   A preference score is a hypothesis, **not proof of improved agent performance**.
-8. Review the exact diff and assessment; promote explicitly with current revisions
-   or retain the baseline. Preserve history and rollback. Shared-policy weakening
-   needs human review; an `actor` field or review note is not authenticated approval.
-9. Observe later real outcomes. Stop iterating on a plateau, missing evidence or a
-   task/API budget; do not optimize indefinitely against one's own evaluator.
+Use a shared plan or assessment when it helps; neither is required before implementation. Preserve the user's original objective, apply current steering, and record actual outcomes honestly. The authorized policy writer can add, revise, relax or retire process guidance with the same revision and history guarantees. User requirements and security boundaries remain authoritative.
 
-### Rewards over gates
-
-Preflight is coaching that improves the decision *before* effort is spent. It does
-not block shell/file/delegation tools, change approval policy, or award badges for
-passing a classifier. Opportunities are phrased as useful achievements to earn.
-The existing post-work evidence-review mechanism remains the completion standard.
-Deterministic schema, path, budget and stale-revision checks protect data integrity;
-these are not substitutes for motivation, reasoning or external authorization.
-
-There is no auto-promotion threshold and no self-rewriting background timer.
-Uncertain semantic judgments lead to review, not fabricated certainty. Separate
-signals for boundary conflicts and lost requirements cannot be averaged away by
-better brevity scores. Missing API access leaves useful local contracts operational.
+Assessments, paired trials and reviews are optional aids, not permission or an automatic quality gate. Evaluate concrete failures and material applicable risks in proportion to the task. Remote assessment remains separately opt-in and must not disclose unselected private data. Retain useful lessons about observed failures, fixes and applicability; do not turn acknowledgements or bookkeeping into rules.
 
 ### Versioning and freshness
 
@@ -283,7 +247,7 @@ retains local durability while skipping memory publication.
 | `sections` | `{}` | Exact policy section IDs, text and content revisions |
 | `propose` | `{proposal_id,body OR edits,reason,expected_revision,plan_ids:[],source_artifact_ids?}` | Immutable whole-policy or section-based candidate, source insight refs, snapshots and descriptive metrics |
 | `evaluate` | `{proposal_id}` | One batched comparative inference + immutable receipt |
-| `promote` | `{proposal_id,evaluation_id,expected_revision,review_note,apply?:false}` | Exact diff by default; explicit apply reuses policy history |
+| `promote` | `{proposal_id,evaluation_id?,expected_revision,review_note,apply?:false}` | Exact diff by default; explicit apply reuses policy history |
 | `read` | `{id,issue_index?}` | Artifact and recomputed freshness; select one insight issue/assessment for focused drill-down |
 | `list` | `{kind?,limit?,after?}` | Bounded summaries; follow `next_after` while `has_more` |
 | `diagnose` | `{}` | Three labelled synthetic live assessor probes; not calibration or operational plans |
@@ -318,7 +282,7 @@ aggregates and at most 12 stratified witnesses per selected group, not the raw c
 The 1,024-root test uses mocked local I/O and proves dedup/budget behavior, not real
 CLI throughput; serial subprocess reads make smaller cohorts preferable in practice.
 
-Use the receipt `id` from `evaluate` as `evaluation_id`. Re-read current policy and
+If using an evaluation, pass its receipt `id` as `evaluation_id`; an evaluation is optional. Re-read current policy and
 contracts if a stale error occurs; create a new candidate ID rather than overwriting
 an old one. Select at most eight plans, and prefer a small representative set.
 Artifacts live under `shared/efforts/rsi-*.md`, can be found with ordinary memory
@@ -343,10 +307,7 @@ A `reason` should identify the observed pattern, expected benefit, counterexampl
 and rollback condition. Evaluation dispositions (`human-review-required`,
 `retain-baseline`, `needs-outcome-evidence`, `candidate-for-review`) are conservative
 coaching, not authorization. All promotion applies are explicit and revision-bound.
-A technically unavailable evaluation cannot be promoted through this workflow;
-semantic scores themselves do not decide. The direct `memory_policy` API remains an
-explicit operator repair/edit surface, not a hidden classifier bypass or security
-boundary. Do not promote shared weakening without actual human review.
+An unavailable evaluation need not prevent an otherwise authorized change; semantic scores do not decide. The direct `memory_policy` API is the canonical revision-checked edit surface.
 
 The Python `memory rsi` command implements the local store actions `context`,
 `sections`, `corpus`, `lookup`, `propose`, `record`, `read`, `list`, `promote`; it makes no TypeSafe requests. The DSH

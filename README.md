@@ -72,106 +72,17 @@ memory policy --request '{"action":"read"}' --base /path/to/memory
 See **[Contracts and policy guide](docs/contracts.md)** for creation, achievement
 review, template improvements, policy history/rollback, and managed `AGENTS.md` sync.
 Policy is operator-editable; audit labels are not authenticated human approval.
-Shared requirements should not be weakened without explicit human review.
+Authorized revision-checked policy edits may add, revise, relax or retire ordinary process guidance. User requirements and security boundaries remain authoritative.
 
-## RSI: one lean policy, intelligent improvement
+## RSI: useful memory and proportionate improvement
 
-The **[RSI design and operations guide](docs/rsi.md)** describes the complete loop.
-The reasoning agent writes candidate policy; TypeSafe Jev supplies typed judgments,
-not generated prose. This uses TypeSafe's dedicated `/v1/systemone` API, **not** an
-OpenAI chat/completions custom-model entry. Existing host credentials can be reused.
+Use plans, assessments and trials when they help the work; none is a prerequisite to acting on the user's request. A plan preserves the original task and can record later user steering. Current instructions govern the next action, while actual user requirements and security boundaries remain in force.
 
-Remote assessment is disabled by default. An operator opts in with
-`typesafeEnabled: true` after reviewing disclosure of selected policy/contracts.
-No-source instruction audits additionally require `rsiInstructionDiscoveryEnabled: true`
-(or installer flag `--enable-instruction-discovery`) because they disclose prompt,
-AGENTS-like and skill text; revoke it with `--disable-instruction-discovery`. Each admitted
-member is saved locally in full and sent only as a complete member or complete,
-non-overlapping chunk—never a clipped prefix presented as a source. With assessment
-enabled, `memory_plan create` returns policy preflight coaching before work. Separately,
-`rsiTelemetryEnabled: true` enables bounded session-isolated metadata capture: no raw
-tool arguments, outputs, error messages or transcripts. Explicit `observe` saves a
-snapshot/selected note; only selected `mine` inputs reach Jev. Unavailable or uncertain
-judgments are explicit, never a false pass; classifier scores neither grant permissions
-nor earn achievements.
+The authorized canonical policy writer supports revision-checked addition, revision, relaxation and retirement of ordinary process guidance with history. A proposal can be previewed and promoted without an external evaluation. Optional assessments are evidence, not authority, and cannot override permissions or establish achievement by themselves. Do not resurrect retired instructions from stale copies.
 
-```js
-memory_rsi({action: "status"})                       // no inference request
-memory_rsi({action: "preflight", request: '{"plan_id":"job"}'})
-memory_rsi({action: "reflect", request: '{"plan_id":"job","lesson":"Evidence-led hypothesis"}'})
-memory_rsi({action: "corpus", request: '{"kind":"plans","limit":4}'})
-memory_rsi({action: "mine", request: '{"kind":"plans","source_ids":["job"],"max_calls":4}'})
-// Follow returned resume fields; unchanged successful maps are cached.
-// reduce selected mapping IDs into source-linked issues with counterexamples.
-memory_rsi({action: "reduce", request: '{"artifact_ids":["map-..."]}'})
-// Select the exact resulting insight/trial artifacts intentionally; no corpus sweep occurs.
-memory_rsi({action: "audit", request: '{"plan_id":"job","feedback_ids":["insight-..."]}'})
-memory_rsi({action: "prepare", request: '{"plan_ids":["job"],"insight_ids":["insight-..."]}'})
-// Prefer whole-section replace/merge/retire edits, not another incident-specific rule.
-// Propose → evaluate → review exact promotion preview → apply or retain baseline.
-```
+Keep transferable lessons about the observed problem, fix and applicable context. Acknowledgements, handoff counts and process receipts are not engineering lessons. Review actual failures and material applicable risks proportionately, using existing evidence rather than generating mandatory review cascades.
 
-Maps, insights, assessments and proposals are immutable searchable memory. Reduction
-revisits leaf evidence rather than treating prior model summaries or copied reports
-as independent votes. Issues can belong in a template, ordinary memory or a tool fix,
-not global policy. Prefer coherent revision over accretion; length is descriptive,
-not a small-policy target. Missing coverage and uncertainty remain visible.
-
-Revisions bind policy, contracts and evaluator rubrics; transitive stale/unavailable
-source lineage cannot be promoted. Promotion retains history/rollback and never
-alters active plans or synchronizes instruction files implicitly. Actor labels are
-not approval. Unit and live smoke tests do not establish statistical improvement.
-
-### Proactive instruction-stack audits and measured trials
-
-With separate operator consent (`rsiInstructionDiscoveryEnabled` plus
-`typesafeEnabled`), `memory_rsi audit` without `sources` captures the invoking Agent's
-rendered system-prompt sections, configured AGENTS-like files, active model-invocable
-skills and canonical policy. Managed policy mirrors are de-duplicated. Every admitted
-member is persisted as exact local-only chunks **before** inference; system blank-line
-joins and exact registry skill content are retained, while de-duplicated policy mirrors
-remain explicit. A capture manifest proves gapless byte coverage. Each paid map sees
-complete members/chunks and selects an exact source span; ordinary results use opaque
-member IDs, with raw owner/provider identifiers confined to explicitly read capture
-artifacts. Multi-chunk members are reported as fully mapped content, never as a
-whole-source coherence judgment, and the audit does not claim exhaustive stack review
-without member-to-member relationship coverage.
-
-Instruction structure alone is not recursive improvement evidence. To ground a cycle,
-record outcomes with `observe` or reviewed plan evidence, run `mine` → `reduce`, then
-pass the exact resulting `insight` or `trial_review` IDs as `feedback_ids`. Feedback is
-provenance-labelled:
-
-- tool-result telemetry contains only root-dispatch counts/sequences and can nominate a
-  tool investigation, not prove agent failure;
-- user/agent steering exists only as an explicit unreviewed observation summary and
-  cannot independently justify policy change;
-- test/MR/task evidence is included only through durable plan summaries and recorded
-  review state—the referenced files are not silently opened;
-- reduced insights retain source-family deduplication, success/failure strata,
-  omissions and counterevidence;
-- paired trials are caller-reported corroborating context, not independent causal proof.
-
-A reviewable instruction candidate requires an exact instruction witness, one exact
-eligible feedback issue, reviewed cross-task evidence, represented counterevidence and
-complete content mapping. Otherwise the result is `investigate`, `needs-outcome-evidence`
-or no change. Owner routes remain local and explicit-review-only. Automatic snapshots
-force no-Git persistence and a narrow ignore rule so later `memory_sync` does not stage
-them; no audit silently writes policy, AGENTS, skills, prompt providers or templates.
-Future reviewed outcomes bind the resulting revisions and become evidence for the next
-cycle; application and policy promotion remain explicit.
-
-The original explicit 1–5 source mode remains available and never performs discovery or
-feedback selection. Use `trial_spec` → `trial_results` → `trial_review` for immutable
-declared paired comparisons: fixed cases/environment, holdout/control splits, useful
-outcomes, separate safety/cost, and honest missingness. Neither a score nor a trial
-report proves causal improvement or authorizes promotion.
-
-Preflight retains capability-exception reviews, including rejection and pending
-status. Candidate recommendations expose comparison coverage and quality concerns
-rather than treating uncertain/equivalent cases as candidate advantage. See the
-[API and measurement guide](docs/rsi-trials-and-instructions.md) and
-[ranked review/validation](docs/rsi-improvement-review.md).
+TypeSafe and remote disclosure remain separately opt-in. Instruction sync remains an explicitly authorized operation on allowlisted files. For optional assessments, selected source data, provenance and missing coverage are described in [the RSI guide](docs/rsi.md) and [measurement guide](docs/rsi-trials-and-instructions.md).
 
 ## Requirements
 

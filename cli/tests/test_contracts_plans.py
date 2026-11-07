@@ -72,9 +72,9 @@ def test_lifecycle_report_review_and_completion(api):
     progress = reported["validation"]["work_items"][0]
     assert progress["reported_evidence"] == 2
     assert progress["reviewed_requirements"] == []
-    with pytest.raises(ContractError, match="cannot complete"):
-        update(api, reported, status="complete")
-    done = update(api, reported, reviews=[review(), review("tests")], status="complete")
+    unreviewed = update(api, reported, status="complete")
+    assert unreviewed["validation"]["complete"]
+    done = update(api, unreviewed, reviews=[review(), review("tests")])
     assert done["validation"]["complete"]
     loaded = api({"action": "read", "plan_id": "example"})
     assert loaded["plan"] == done["plan"]
@@ -108,11 +108,12 @@ def test_rejected_exception_does_not_satisfy_requirement(api):
             {"exception_id": "skip", "verdict": "rejected", "note": "Run the check"}], status="complete")
 
 
-def test_cannot_self_accept_new_report_in_same_operation(api):
+def test_same_operation_review_retains_actual_actor(api):
     plan = create(api)
-    with pytest.raises(ContractError, match="review target"):
-        update(api, plan, evidence=[report()], reviews=[review()])
-    assert api({"action": "read", "plan_id": "example"})["revision"] == plan["revision"]
+    result = update(api, plan, evidence=[report()], reviews=[review()])
+    entry = result["plan"]["work_items"][0]["evidence"][0]
+    assert entry["reported_by"] == "parent"
+    assert entry["reviews"][0]["reviewed_by"] == "parent"
 
 
 def test_stale_revision_atomic_failure_and_duplicate_creation(api):
@@ -414,11 +415,11 @@ def test_invalid_work_item_shapes(api, key, value):
         api(req)
 
 
-def test_pending_exception_blocks_completion_even_with_evidence(api):
+def test_pending_exception_does_not_block_when_evidence_covers_the_requirement(api):
     plan = update(api, create(api), evidence=[report(), report("verification", "tests")], exceptions=[
         {"id": "pending", "requirement_id": "verification", "reason": "Unreviewed limitation", "alternative": "Review its impact"}])
-    with pytest.raises(ContractError, match="cannot complete"):
-        update(api, plan, reviews=[review(), review("tests")], status="complete")
+    done = update(api, plan, reviews=[review(), review("tests")], status="complete")
+    assert done["validation"]["complete"]
 
 
 def test_review_reversal_requires_explicit_reopening(api):
@@ -429,3 +430,37 @@ def test_review_reversal_requires_explicit_reopening(api):
     reopened = update(api, done, reviews=[review("tests", "rejected")], status="in_progress")
     assert not reopened["validation"]["complete"]
     assert len(reopened["plan"]["work_items"][0]["evidence"][1]["reviews"]) == 2
+
+
+def test_steering_reopens_outcome_and_keeps_prior_evidence_as_history(api):
+    plan = create(api)
+    plan = update(api, plan, evidence=[report("outcome", "old-result"), report("verification", "old-check")], status="complete")
+    original = plan["plan"]["task"]["good"]
+    plan = api({"action": "steer", "plan_id": "example", "revision": plan["revision"],
+                "instruction": "Deliver the changed user outcome", "outcome": "Deliver revised behavior"})
+    assert plan["plan"]["task"]["good"] == original
+    assert plan["validation"]["direction"]["latest_instruction"] == "Deliver the changed user outcome"
+    assert plan["plan"]["work_items"][0]["status"] == "in_progress"
+    assert set(plan["validation"]["work_items"][0]["missing_requirements"]) == {"outcome", "verification"}
+    plan = update(api, plan, evidence=[report("outcome", "new-result"), report("verification", "new-check")], status="complete")
+    assert plan["validation"]["complete"]
+    assert len(plan["plan"]["work_items"][0]["evidence"]) == 4
+
+
+def test_advisory_review_does_not_block_but_specific_blocking_finding_does(api):
+    plan = update(api, create(api), evidence=[report("outcome"), report("verification", "check")])
+    plan = update(api, plan, reviews=[{"evidence_id": "result", "verdict": "concern", "note": "Consider this later"}])
+    assert plan["validation"]["work_items"][0]["ready"]
+    plan = update(api, plan, reviews=[{"evidence_id": "result", "verdict": "concern", "note": "Actual failed behavior", "blocking": True, "basis": "The requested action fails"}])
+    assert plan["validation"]["work_items"][0]["blocking_findings"] == ["result"]
+    with pytest.raises(ContractError, match="cannot complete"):
+        update(api, plan, status="complete")
+
+
+def test_historical_coding_process_is_optional_without_weakening_custom_requirements():
+    from agent_memory.plans import _direction
+    template = {"achievements": [
+        {"id": "ast", "description": "Use AST-aware exploration to map affected symbols before modifying.", "evidence": "inspect"},
+        {"id": "lsp", "description": "Customer-specific requirement", "evidence": "inspect"}], "validation": []}
+    direction = _direction({"task": {"good": "Ship"}, "template": {"template_id": "coding", "content": template}})
+    assert direction["process_requirements"] == ["ast"]

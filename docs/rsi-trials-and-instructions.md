@@ -38,7 +38,7 @@ Feedback classes have different force:
 - reduced insights are source-linked hypotheses, never new independent votes;
 - paired trial reviews are caller-reported corroboration and cannot independently unlock an instruction change.
 
-A proposal requires complete content mapping, one exact instruction witness, one exact eligible feedback issue, two distinct reviewed+observed plan sources, reviewed+observed opposing counterevidence, no material unresolved uncertainty, and a plausible mechanism judgment. Tool metadata/user steering alone, unrelated eligible issues, missing witness spans, incomplete strata or trial-only support yields `investigate` or no change. Results route only outcome-supported candidates to the actual owner: canonical policy (`memory_policy`), managed mirrors (`memory_policy sync`), external AGENTS text (file owner), system sections (provider/composition owner), and skills (skill/provider owner). Structural findings remain review notes. Every route is `explicit-review-only`; auditing never applies edits.
+Instruction candidates use concrete selected evidence and report uncertainty honestly; a fixed number of reviewed plans or a manufactured counterexample is not required. An audit is an optional aid and does not apply edits. Route a supported change to the real owner: canonical policy (`memory_policy`), managed mirrors (`memory_policy sync`), external AGENTS text, system sections or skills. The ordinary authorized revision-checked writer can also revise, relax or retire process rules without an audit or trial.
 
 ### Explicit custom snapshots
 
@@ -118,7 +118,7 @@ This opt-in remote review selects the exact saved protocol, result notes, comput
 
 Interpretation cannot turn missing pairs, absent holdout coverage, declared family leakage, uncertain judgments or unknown safety into a positive gain claim. Safety regressions retain the baseline; adverse outcome/cost tradeoffs remain separate. Even `reported-gain-for-review` means **descriptive caller-reported gain for further review**, not verified behavior, causal improvement, achievement credit or promotion permission.
 
-These trial reports are a separately reviewable evidence path. They do not automatically rewrite proposal/evaluation/promotion requirements, feed the mining corpus, or become independent votes merely because TypeSafe reviewed them. The reasoning agent must inspect actual evidence and cite it during explicit change review.
+These optional trial reports are an evidence path, not an authorization or mandatory prerequisite to policy changes. They do not become independent votes merely because TypeSafe reviewed them.
 
 ## Plan and evaluation changes
 
